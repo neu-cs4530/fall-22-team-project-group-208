@@ -23,10 +23,12 @@ enum Team {
 class GameCard {
   public _name: string;
   public _team: Team;
+  public _guessed: boolean;
 
   public constructor(name: string, team: Team) {
     this._name = name;
     this._team = team;
+    this._guessed = false;
   }
 
   public isBlue(): boolean {
