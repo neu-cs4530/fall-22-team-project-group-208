@@ -16,7 +16,8 @@ import {
   TownSettingsUpdate,
   ViewingArea as ViewingAreaModel,
 } from '../types/CoveyTownSocket';
-import { isConversationArea, isViewingArea } from '../types/TypeUtils';
+import { isCodenamesArea, isConversationArea, isViewingArea } from '../types/TypeUtils';
+import CodenamesAreaController from './CodenamesAreaController';
 import ConversationAreaController from './ConversationAreaController';
 import PlayerController from './PlayerController';
 import ViewingAreaController from './ViewingAreaController';
@@ -69,6 +70,11 @@ export type TownEvents = {
    * the town controller's record of viewing areas.
    */
   viewingAreasChanged: (newViewingAreas: ViewingAreaController[]) => void;
+  /**
+   * An event that indicates that the set of codenames areas has changed. This event is emitted after updating
+   * the town controller's record of codenames areas.
+   */
+  codenamesAreasChanged: (newCodenamesAreas: CodenamesAreaController[]) => void;
   /**
    * An event that indicates that a new chat message has been received, which is the parameter passed to the listener
    */
@@ -131,6 +137,12 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
    * replace the array with a new one; clients should take note not to retain stale references.
    */
   private _conversationAreasInternal: ConversationAreaController[] = [];
+
+  /**
+   * The current list of conversation areas in the twon. Adding or removing conversation areas might
+   * replace the array with a new one; clients should take note not to retain stale references.
+   */
+  private _codenamesAreasInternal: CodenamesAreaController[] = [];
 
   /**
    * The friendly name of the current town, set only once this TownController is connected to the townsService
@@ -296,6 +308,15 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     this.emit('conversationAreasChanged', newConversationAreas);
   }
 
+  public get codenamesAreas() {
+    return this._codenamesAreasInternal;
+  }
+
+  private set _codenamesAreas(newCodenamesAreas: CodenamesAreaController[]) {
+    this._codenamesAreasInternal = newCodenamesAreas;
+    this.emit('codenamesAreasChanged', newCodenamesAreas);
+  }
+
   public get interactableEmitter() {
     return this._interactableEmitter;
   }
@@ -427,6 +448,16 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
           eachArea => eachArea.id === interactable.id,
         );
         updatedViewingArea?.updateFrom(interactable);
+      } else if (isCodenamesArea(interactable)) {
+        const updatedCodenamesArea = this.codenamesAreas.find(c => c.id === interactable.id);
+        if (updatedCodenamesArea) {
+          const emptyNow = updatedCodenamesArea.isEmpty();
+          updatedCodenamesArea.occupants = this._playersByIDs(interactable.occupantsByID);
+          const emptyAfterChange = updatedCodenamesArea.isEmpty();
+          if (emptyNow !== emptyAfterChange) {
+            this.emit('codenamesAreasChanged', this._codenamesAreasInternal);
+          }
+        }
       }
     });
   }
@@ -509,6 +540,18 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   }
 
   /**
+   * Create a new codenames area, sending the request to the townService. Throws an error if the request
+   * is not successful. Does not immediately update local state about the new codenames area - it will be
+   * updated once the townService creates the area and emits an interactableUpdate
+   *
+   * @param newArea
+   */
+  async createCodenamesArea(newArea: { topic?: string; occupantsByID: Array<string> }) {
+    throw new Error('not implemented yet');
+    //await this._townsService.createConversationArea(this.townID, this.sessionToken, newArea);
+  }
+
+  /**
    * Disconnect from the town, notifying the townService that we are leaving and returning
    * to the login page
    */
@@ -540,6 +583,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
 
         this._conversationAreas = [];
         this._viewingAreas = [];
+        this._codenamesAreas = [];
         initialData.interactables.forEach(eachInteractable => {
           if (isConversationArea(eachInteractable)) {
             this._conversationAreasInternal.push(
@@ -550,6 +594,13 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
             );
           } else if (isViewingArea(eachInteractable)) {
             this._viewingAreas.push(new ViewingAreaController(eachInteractable));
+          } else if (isCodenamesArea(eachInteractable)) {
+            this._codenamesAreasInternal.push(
+              CodenamesAreaController.fromCodenamesAreaModel(
+                eachInteractable,
+                this._playersByIDs.bind(this),
+              ),
+            );
           }
         });
         this._userID = initialData.userID;
@@ -699,6 +750,32 @@ export function useActiveConversationAreas(): ConversationAreaController[] {
     };
   }, [townController, setConversationAreas]);
   return conversationAreas;
+}
+
+/**
+ * A react hook to retrieve the active conversation areas. This hook will re-render any components
+ * that use it when the set of conversation areas changes. It does *not* re-render its dependent components
+ * when the state of one of those areas changes - @see useCodednamesAreaOccupants
+ *
+ * This hook relies on the TownControllerContext.
+ *
+ * @returns the list of codenames area controllers that are currently "active"
+ */
+export function useActiveCodenamesAreas(): CodenamesAreaController[] {
+  const townController = useTownController();
+  const [codenamesAreas, setCodenamesAreas] = useState<CodenamesAreaController[]>(
+    townController.codenamesAreas.filter(eachArea => !eachArea.isEmpty()),
+  );
+  useEffect(() => {
+    const updater = (allAreas: CodenamesAreaController[]) => {
+      setCodenamesAreas(allAreas.filter(eachArea => !eachArea.isEmpty()));
+    };
+    townController.addListener('codenamesAreasChanged', updater);
+    return () => {
+      townController.removeListener('codenamesAreasChanged', updater);
+    };
+  }, [townController, setCodenamesAreas]);
+  return codenamesAreas;
 }
 
 /**
