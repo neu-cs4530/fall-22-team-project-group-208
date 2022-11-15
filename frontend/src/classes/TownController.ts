@@ -16,7 +16,7 @@ import {
   TownSettingsUpdate,
   ViewingArea as ViewingAreaModel,
 } from '../types/CoveyTownSocket';
-import { isCodenamesArea, isConversationArea, isViewingArea } from '../types/TypeUtils';
+import { isConversationArea, isViewingArea } from '../types/TypeUtils';
 import CodenamesAreaController from './CodenamesAreaController';
 import ConversationAreaController from './ConversationAreaController';
 import PlayerController from './PlayerController';
@@ -448,17 +448,18 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
           eachArea => eachArea.id === interactable.id,
         );
         updatedViewingArea?.updateFrom(interactable);
-      } else if (isCodenamesArea(interactable)) {
-        const updatedCodenamesArea = this.codenamesAreas.find(c => c.id === interactable.id);
-        if (updatedCodenamesArea) {
-          const emptyNow = updatedCodenamesArea.isEmpty();
-          updatedCodenamesArea.occupants = this._playersByIDs(interactable.occupantsByID);
-          const emptyAfterChange = updatedCodenamesArea.isEmpty();
-          if (emptyNow !== emptyAfterChange) {
-            this.emit('codenamesAreasChanged', this._codenamesAreasInternal);
-          }
-        }
       }
+      // else if (isCodenamesArea(interactable)) {
+      //   const updatedCodenamesArea = this.codenamesAreas.find(c => c.id === interactable.id);
+      //   if (updatedCodenamesArea) {
+      //     const emptyNow = updatedCodenamesArea.isEmpty();
+      //     updatedCodenamesArea.occupants = this._playersByIDs(interactable.occupantsByID);
+      //     const emptyAfterChange = updatedCodenamesArea.isEmpty();
+      //     if (emptyNow !== emptyAfterChange) {
+      //       this.emit('codenamesAreasChanged', this._codenamesAreasInternal);
+      //     }
+      //   }
+      // }
     });
   }
 
@@ -594,14 +595,15 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
             );
           } else if (isViewingArea(eachInteractable)) {
             this._viewingAreas.push(new ViewingAreaController(eachInteractable));
-          } else if (isCodenamesArea(eachInteractable)) {
-            this._codenamesAreasInternal.push(
-              CodenamesAreaController.fromCodenamesAreaModel(
-                eachInteractable,
-                this._playersByIDs.bind(this),
-              ),
-            );
           }
+          // else if (isCodenamesArea(eachInteractable)) {
+          //   this._codenamesAreasInternal.push(
+          //     CodenamesAreaController.fromCodenamesAreaModel(
+          //       eachInteractable,
+          //       this._playersByIDs.bind(this),
+          //     ),
+          //   );
+          // }
         });
         this._userID = initialData.userID;
         this._ourPlayer = this.players.find(eachPlayer => eachPlayer.id == this.userID);
