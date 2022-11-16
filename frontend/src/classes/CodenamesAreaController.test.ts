@@ -115,8 +115,9 @@ describe('[T2] CodenamesAreaController', () => {
       expect(testArea.hint).toEqual('animals');
       expect(testArea.hintAmount).toEqual(3);
     });
-    it("Only if the current turn is a spymaster's turn can a hint be set", () => {
-      // TODO: Finish this test!!!
+    it('Emits a hintChange event when the hint and amount of words the hint belongs to change', () => {
+      testArea.setHint({ word: 'animals', quantity: 3 });
+      expect(mockListeners.hintChange).toBeCalledWith({ word: 'animals', quantity: 3 });
     });
   });
 });

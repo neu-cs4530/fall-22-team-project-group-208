@@ -165,12 +165,12 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
    * Only a spymaster whose turn is the current turn can make a hint.
    * @param newHint The word to set as the hint and the amount of words within the board that this hint correlates with.
    */
-  public setHint(newHint: { word: string; quantity: number }): void {
-    // TODO: Need conditional here to check whether this._turn is a Spymaster turn or not!!!!
+  public updateHint(newHint: { word: string; quantity: number }): void {
     const word: string = newHint.word;
     const quantity: number = newHint.quantity;
     this._hint = word;
     this._hintAmount = quantity;
+    this.emit('hintChange', newHint);
   }
 
   /**
