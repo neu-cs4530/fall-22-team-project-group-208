@@ -21,6 +21,9 @@ export default function CodenamesGameArea({
   const [isGameFull, setIsGameFull] = useState<boolean>(false);
   const [currentTurn, setCurrentTurn] = useState<Turn>(Turn.TeamOneSpymaster);
   const isOpen = newCodenames !== undefined;
+  const isSpymaster =
+    coveyTownController.ourPlayer === controller.TeamOneSpymaster ||
+    coveyTownController.ourPlayer === controller.TeamTwoSpymaster;
 
   /* closes screen when exit is pressed */
   const closeGame = useCallback(() => {
@@ -85,7 +88,12 @@ export default function CodenamesGameArea({
         <ModalCloseButton />
         <ModalBody>Waiting for {4 - controller.occupants.length} more players.</ModalBody>
       </ModalContent>
-      <CodenamesModal isOpen={isGameFull} close={() => setIsGameFull(false)} turn={currentTurn} />
+      <CodenamesModal
+        isOpen={isGameFull}
+        close={() => setIsGameFull(false)}
+        turn={currentTurn}
+        role={isSpymaster}
+      />
     </Modal>
   );
 }
