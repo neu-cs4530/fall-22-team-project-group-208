@@ -111,12 +111,12 @@ describe('[T2] CodenamesAreaController', () => {
     it('Sets the current hint and amount of words the hint belongs to', () => {
       expect(testArea.hint).toEqual('');
       expect(testArea.hintAmount).toEqual(0);
-      testArea.setHint({ word: 'animals', quantity: 3 });
+      testArea.updateHint({ word: 'animals', quantity: 3 });
       expect(testArea.hint).toEqual('animals');
       expect(testArea.hintAmount).toEqual(3);
     });
     it('Emits a hintChange event when the hint and amount of words the hint belongs to change', () => {
-      testArea.setHint({ word: 'animals', quantity: 3 });
+      testArea.updateHint({ word: 'animals', quantity: 3 });
       expect(mockListeners.hintChange).toBeCalledWith({ word: 'animals', quantity: 3 });
     });
   });
