@@ -25,32 +25,36 @@ export class GameCard {
     this._color = color;
   }
 
+  /** Function to determine if a card is assigned to the Blue Team */
   public isBlue(): boolean {
     return this._team == Team.Blue;
   }
 
+  /** Function to determine if a card is assigned to the Red Team */
   public isRed(): boolean {
     return this._team == Team.Red;
   }
 
+  /** Function to determine if a card is assigned as the Bomb */
   public isBomb(): boolean {
     return this._team == Team.Bomb;
   }
 
+  /** Function to determine if a card is assigned to neutral */
   public isNeutral(): boolean {
     return this._team == Team.Neutral;
   }
 
   /**
-   * Initializes the cards on the board such that each card has a name, assigned team, and a
-   * location on the grid
-   * @returns a 2D array of GameCards of size 5x5 in which the GameCards name, team, and location
-   * within the grid are randomly assigned
+   * Initializes the cards on such that each card has a name, assigned team, and a
+   * randomized place on the grid
+   * @returns an array of GameCards of size 25 in which the GameCards name, team, and location
+   * within the array are randomly assigned
    */
-  public initializeCards(): GameCard[][] {
+  public initializeCards(): GameCard[] {
     /** Clones the possibleWords array so we can mutate it without changing the actual state */
     const clonedPossibleWords: string[] = Object.assign([], POSSIBLE_WORDS);
-    const returnArray: GameCard[][] = [];
+    const returnArray: GameCard[] = [];
     const cardArray: GameCard[] = [];
 
     /** Creates an array of cards of length 25 that have randomly generated words */
@@ -86,19 +90,17 @@ export class GameCard {
       clonedPossibleWords.filter(name => name !== newWord);
     }
 
-    /** Uses the cardArray created above to randomly place the cards in a 5x5 grid */
-    for (let row = 0; row < 5; row++) {
-      for (let column = 0; column < 5; column++) {
-        /** Selects a random index for which a card can be taken from the cardArray */
-        const cardArrayIndex: number = Math.floor(Math.random() * (cardArray.length + 1));
-        const newCard: GameCard = cardArray[cardArrayIndex];
+    /** Uses the card array to randomly place the cards in the list of cards */
+    for (let idx = 0; idx < cardArray.length; idx++) {
+      /** Selects a random index for which a card can be taken from the cardArray */
+      const cardArrayIndex: number = Math.floor(Math.random() * (cardArray.length + 1));
+      const newCard: GameCard = cardArray[cardArrayIndex];
 
-        /** Assigns the new card to the current location */
-        returnArray[row][column] = newCard;
+      /** Assigns the new card to the current location */
+      returnArray[idx] = newCard;
 
-        /** Removes the card from the cardArray so there are no duplicate words on the board */
-        cardArray.filter(card => card._name !== newCard._name);
-      }
+      /** Removes the card from the cardArray so there are no duplicate words on the board */
+      cardArray.filter(card => card._name !== newCard._name);
     }
     return returnArray;
   }
