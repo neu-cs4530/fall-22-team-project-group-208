@@ -2,8 +2,9 @@ import EventEmitter from 'events';
 import _, { TruncateOptions } from 'lodash';
 import { useEffect, useState } from 'react';
 import TypedEmitter from 'typed-emitter';
-// import { CodenamesArea as CodenamesAreaModel, Player } from '../types/CoveyTownSocket';
-import { Player } from '../types/CoveyTownSocket';
+import { CodenamesArea as CodenamesAreaModel, Player } from '../types/CoveyTownSocket';
+import { GameCard } from '../components/GameCard';
+import { CodenamesArea as CodenamesAreaModel } from '../types/CoveyTownSocket';
 import PlayerController from './PlayerController';
 
 /**
@@ -26,7 +27,7 @@ export type CodenamesAreaEvents = {
   /**
    * An event that indicates the cards on the gameboard have changed. This refers to cases where cards have been guessed.
    */
-  // cardChange: (newCards: GameCard[][]) => void;
+  cardChange: (newCards: GameCard[]) => void;
   /**
    * An event that indicates the hint for the turn has changed.
    */
