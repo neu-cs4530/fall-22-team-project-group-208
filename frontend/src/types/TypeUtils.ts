@@ -17,6 +17,6 @@ export function isViewingArea(interactable: Interactable): interactable is Viewi
 /**
  * Test to see if an interactable is a Codenames area
  */
-export function isCodenamesArea(interactable: Interactable): interactable is CodenamesArea {
-  return 'occupantsByID' in interactable;
-}
+// export function isCodenamesArea(interactable: Interactable): interactable is CodenamesArea {
+//   return 'occupantsByID' in interactable;
+// }
