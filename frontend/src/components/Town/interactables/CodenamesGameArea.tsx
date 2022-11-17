@@ -10,6 +10,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import CodenamesAreaController from '../../../classes/CodenamesAreaController';
 import { useInteractable } from '../../../classes/TownController';
 import useTownController from '../../../hooks/useTownController';
+import { GameCard } from '../../GameCard';
+import CodenamesModal from './CodenamesModal';
 
 export default function CodenamesGameArea({
   controller,
@@ -24,6 +26,9 @@ export default function CodenamesGameArea({
   const isSpymaster =
     coveyTownController.ourPlayer === controller.TeamOneSpymaster ||
     coveyTownController.ourPlayer === controller.TeamTwoSpymaster;
+  const isTeamOne =
+    coveyTownController.ourPlayer === controller.TeamOneSpymaster ||
+    coveyTownController.ourPlayer === controller.TeamOneFieldOperative;
 
   /* closes screen when exit is pressed */
   const closeGame = useCallback(() => {
@@ -59,7 +64,7 @@ export default function CodenamesGameArea({
           throw new Error('has to have a next turn');
       }
     };
-    const changeCards = (updatedCards: GameCard[][]) => {
+    const changeCards = (updatedCards: GameCard[]) => {
       /* set controller cards to updated cards and emit an event */
     };
     const changeHint = (newHint: { word: string; quantity: number }) => {
@@ -89,10 +94,11 @@ export default function CodenamesGameArea({
         <ModalBody>Waiting for {4 - controller.occupants.length} more players.</ModalBody>
       </ModalContent>
       <CodenamesModal
-        isOpen={isGameFull}
+        isOpen={!isGameFull}
         close={() => setIsGameFull(false)}
-        turn={currentTurn}
+        codenamesArea={controller}
         role={isSpymaster}
+        team={isTeamOne}
       />
     </Modal>
   );
