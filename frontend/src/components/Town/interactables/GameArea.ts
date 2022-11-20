@@ -58,6 +58,6 @@ export default class GameArea extends Interactable {
   }
 
   getType(): KnownInteractableTypes {
-    return 'gameArea';
+    return 'codenamesArea';
   }
 }
