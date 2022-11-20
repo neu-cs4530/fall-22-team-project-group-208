@@ -729,6 +729,29 @@ export function useViewingAreaController(viewingAreaID: string): ViewingAreaCont
 }
 
 /**
+ * A react hook to retrieve a codenames area controller.
+ *
+ * This function will throw an error if the codenames area controller does not exist.
+ *
+ * This hook relies on the TownControllerContext.
+ *
+ * @param codenamesAreaID The ID of the viewing area to retrieve the controller for
+ *
+ * @throws Error if there is no codenames area controller matching the specifeid ID
+ */
+export function useCodenamesAreaController(codenamesAreaID: string): CodenamesAreaController {
+  const townController = useTownController();
+
+  const codenamesArea = townController.codenamesAreas.find(
+    eachArea => eachArea.id == codenamesAreaID,
+  );
+  if (!codenamesArea) {
+    throw new Error(`Requested codenames area ${codenamesAreaID} does not exist`);
+  }
+  return codenamesArea;
+}
+
+/**
  * A react hook to retrieve the active conversation areas. This hook will re-render any components
  * that use it when the set of conversation areas changes. It does *not* re-render its dependent components
  * when the state of one of those areas changes - if that is desired, @see useConversationAreaTopic and @see useConversationAreaOccupants

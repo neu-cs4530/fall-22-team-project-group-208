@@ -3,8 +3,6 @@ import Interactable, { KnownInteractableTypes } from '../Interactable';
 export default class GameArea extends Interactable {
   private _labelText?: Phaser.GameObjects.Text;
 
-  private _isInteracting = false;
-
   addedToScene() {
     super.addedToScene();
     this.setTintFill();
@@ -24,22 +22,13 @@ export default class GameArea extends Interactable {
       throw new Error('Should not be able to overlap with this interactable before added to scene');
     }
     const location = this.townController.ourPlayer.location;
-    this._labelText.setX(location.x);
-    this._labelText.setY(location.y);
+    this._labelText.setX(location.x - 45);
+    this._labelText.setY(location.y - 45);
     this._labelText.setVisible(true);
   }
 
   overlapExit(): void {
     this._labelText?.setVisible(false);
-    if (this._isInteracting) {
-      this.townController.interactableEmitter.emit('endInteraction', this);
-      this._isInteracting = false;
-    }
-  }
-
-  interact(): void {
-    this._labelText?.setVisible(false);
-    this._isInteracting = true;
   }
 
   getType(): KnownInteractableTypes {
