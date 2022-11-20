@@ -1,13 +1,9 @@
 import {
   Button,
-  FormControl,
-  FormLabel,
   Input,
   Modal,
-  ModalBody,
   ModalCloseButton,
   ModalContent,
-  ModalFooter,
   ModalHeader,
   ModalOverlay,
   Box,
@@ -16,24 +12,26 @@ import {
   WrapItem,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState } from 'react';
+import CodenamesAreaController, { Turn } from '../../../classes/CodenamesAreaController';
 import useTownController from '../../../hooks/useTownController';
 import { GameCard } from '../../GameCard';
 
 export default function CodenamesModal({
   isOpen,
   close,
-  codenamesArea,
+  turn,
   role,
   team,
+  codenamesAreaController,
 }: {
   isOpen: boolean;
   close: () => void;
-  codenamesArea: CodenamesArea;
+  turn: Turn;
   role: boolean;
   team: boolean;
+  codenamesAreaController: CodenamesAreaController;
 }): JSX.Element {
   const coveyTownController = useTownController();
-  const codenamesAreaController = useCodenamesAreaController(codenamesArea?.name);
 
   useEffect(() => {
     if (isOpen) {
@@ -66,8 +64,7 @@ export default function CodenamesModal({
         color='gray'
         name={card._name}
         disabled={
-          !(team && codenamesArea.turn === codenamesAreaController.TeamOneOperative) ||
-          !(!team && codenamesArea.turn === codenamesAreaController.TeamTwoOperative)
+          !((team && turn === Turn.TeamOneOperative) || (!team && turn === Turn.TeamTwoOperative))
         }>
         <Heading as='h4'>{card._name}</Heading>
         onClick=
@@ -112,14 +109,16 @@ export default function CodenamesModal({
           type='submit'
           onClick={async () => {
             // Whatever the function in the controller is
-            await codenamesAreaController.updateHint(hint, hintAmount);
+            codenamesAreaController.updateHint({
+              word: hint,
+              quantity: hintAmount,
+            });
             setHint('');
             setHintAmount('0');
             // update turn
           }}
           disabled={
-            !(team && codenamesArea.turn === codenamesAreaController.TeamOneSpymaster) ||
-            !(!team && codenamesArea.turn === codenamesAreaController.TeamTwoSpymaster)
+            !((team && turn === Turn.TeamOneSpymaster) || (!team && turn === Turn.TeamTwoSpymaster))
           }>
           Submit Hint
         </Button>
