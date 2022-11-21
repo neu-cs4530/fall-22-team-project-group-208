@@ -7,42 +7,44 @@ import {
   ModalOverlay,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState } from 'react';
-import CodenamesAreaController from '../../../classes/CodenamesAreaController';
 import { useCodenamesAreaController, useInteractable } from '../../../classes/TownController';
 import useTownController from '../../../hooks/useTownController';
-import CodenamesArea from './GameArea';
+import CodenamesAreaInteractable from './GameArea';
 
-export default function CodenamesGameArea(): JSX.Element {
+export function CodenamesGameArea({
+  codenamesArea,
+}: {
+  codenamesArea: CodenamesAreaInteractable;
+}): JSX.Element {
   const coveyTownController = useTownController();
-  const newCodenamesArea = useInteractable('codenamesArea');
-  //const codenamesController = useCodenamesAreaController(newCodenamesArea?.name);
+  const codenamesAreaController = useCodenamesAreaController(codenamesArea.id);
   const [isGameFull, setIsGameFull] = useState<boolean>(false);
-  const isOpen = newCodenamesArea !== undefined;
+  const isOpen = codenamesArea !== undefined;
 
   useEffect(() => {
-    if (newCodenamesArea) {
+    if (codenamesArea) {
       coveyTownController.pause();
     } else {
       coveyTownController.unPause();
     }
-  }, [coveyTownController, newCodenamesArea]);
+  }, [coveyTownController, codenamesArea]);
 
   /* closes screen when exit is pressed */
   const closeGame = useCallback(() => {
-    if (newCodenamesArea) {
-      coveyTownController.interactEnd(newCodenamesArea);
+    if (codenamesArea) {
+      coveyTownController.interactEnd(codenamesArea);
     }
-  }, [coveyTownController, newCodenamesArea]);
+  }, [coveyTownController, codenamesArea]);
 
   /* when the players are updated, checks whether the game is full */
   useEffect(() => {
-    // consider when more than 4 players join
-    if (coveyTownController.players.length === 4) {
+    console.log(codenamesAreaController.occupants.length);
+    if (codenamesAreaController.occupants.length === 4) {
       setIsGameFull(true);
     } else {
       setIsGameFull(false);
     }
-  }, [coveyTownController]);
+  }, [codenamesAreaController]);
 
   return (
     <Modal
@@ -56,7 +58,9 @@ export default function CodenamesGameArea(): JSX.Element {
       <ModalContent hidden={isGameFull}>
         <ModalHeader>New Codenames Game</ModalHeader>
         <ModalCloseButton />
-        <ModalBody>Waiting for {4 - coveyTownController.players.length} more players.</ModalBody>
+        <ModalBody>
+          Waiting for {4 - codenamesAreaController.occupants.length} more players.
+        </ModalBody>
       </ModalContent>
       <ModalContent hidden={!isGameFull}>
         <ModalHeader>New Codenames Game</ModalHeader>
@@ -67,14 +71,14 @@ export default function CodenamesGameArea(): JSX.Element {
   );
 }
 
-// /**
-//  * The CodenamesAreaWrapper is suitable to be *always* rendered inside of a town, and
-//  * will activate only if the player begins interacting with a codenames area.
-//  */
-// export default function CodenamesAreaWrapper(): JSX.Element {
-//   const codenamesArea = useInteractable('codenamesArea');
-//   if (codenamesArea) {
-//     return <CodenamesGameArea codenamesArea={codenamesArea} />;
-//   }
-//   return <></>;
-// }
+/**
+ * The CodenamesAreaWrapper is suitable to be *always* rendered inside of a town, and
+ * will activate only if the player begins interacting with a codenames area.
+ */
+export default function CodenamesAreaWrapper(): JSX.Element {
+  const codenamesArea = useInteractable<CodenamesAreaInteractable>('codenamesArea');
+  if (codenamesArea) {
+    return <CodenamesGameArea codenamesArea={codenamesArea} />;
+  }
+  return <></>;
+}

@@ -1,3 +1,4 @@
+
 export type TownJoinResponse = {
   /** Unique ID that represents this player * */
   userID: string;
@@ -17,7 +18,7 @@ export type TownJoinResponse = {
   interactables: Interactable[];
 }
 
-export type Interactable = ViewingArea | ConversationArea;
+export type Interactable = ViewingArea | ConversationArea | CodenamesArea;
 
 export type TownSettingsUpdate = {
   friendlyName?: string;
@@ -67,6 +68,24 @@ export interface ViewingArea {
   video?: string;
   isPlaying: boolean;
   elapsedTimeSec: number;
+}
+
+export interface CodenamesArea {
+  id: string;
+  turn: string;
+  occupantsByID: string[];
+  roles: {
+  teamOneSpymaster: string | undefined;
+  teamOneOperative: string | undefined;
+  teamTwoSpymaster: string | undefined;
+  teamTwoOperative: string | undefined;
+  };
+  hint: {
+    word: string,
+    quantity: string,
+  };
+  teamOneWordsRemaining: number;
+  teamTwoWordsRemaining: number;
 }
 
 export interface ServerToClientEvents {

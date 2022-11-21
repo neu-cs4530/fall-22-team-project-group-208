@@ -1,10 +1,9 @@
 import EventEmitter from 'events';
-import _, { TruncateOptions } from 'lodash';
+import _, { TruncateOptions, update } from 'lodash';
 import { useEffect, useState } from 'react';
 import TypedEmitter from 'typed-emitter';
-// import { CodenamesArea as CodenamesAreaModel, Player } from '../types/CoveyTownSocket';
-import { Player } from '../types/CoveyTownSocket';
 import PlayerController from './PlayerController';
+import { CodenamesArea as CodenamesAreaModel, Player } from '../types/CoveyTownSocket';
 
 /**
  * The events that the CodenamesAreaController emits to subscribers. These events
@@ -18,11 +17,16 @@ export type CodenamesAreaEvents = {
   /**
    * An event that indicates a player has been assigned to or unassigned from a role.
    */
-  roleChange: (newPlayer: PlayerController) => void;
+  roleChange: (newRoles: {
+    teamOneSpymaster: string | undefined;
+    teamOneOperative: string | undefined;
+    teamTwoSpymaster: string | undefined;
+    teamTwoOperative: string | undefined;
+  }) => void;
   /**
    * An event that indicates the team's whose turn it is has changed.
    */
-  turnChange: (updatedTurn: Turn) => void;
+  turnChange: (updatedTurn: string) => void;
   /**
    * An event that indicates the cards on the gameboard have changed. This refers to cases where cards have been guessed.
    */
@@ -30,18 +34,8 @@ export type CodenamesAreaEvents = {
   /**
    * An event that indicates the hint for the turn has changed.
    */
-  hintChange: (newHint: { word: string; quantity: number }) => void;
+  hintChange: (newHint: { word: string; quantity: string }) => void;
 };
-
-/**
- * An enum to represent whose turn it is in the current game.
- */
-enum Turn {
-  TeamOneSpymaster,
-  TeamOneOperative,
-  TeamTwoSpymaster,
-  TeamTwoOperative,
-}
 
 /**
  * A CodenamesAreaController manages the local behavior of a codenames area in the frontend,
@@ -61,28 +55,21 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   /* The current player whose turn is active.
    * Default value is represented by null when game has not started yet
    */
-  private _turn: Turn | null;
+  private _turn: string;
 
   /* The spymaster for team one. */
-  private _teamOneSpymaster: PlayerController | null;
-
-  /* The operative for team one. */
-  private _teamOneOperative: PlayerController | null;
-
-  /* The spymaster for team two */
-  private _teamTwoSpymaster: PlayerController | null;
-
-  /* The operative for team two */
-  private _teamTwoOperative: PlayerController | null;
+  private _roles: {
+    teamOneSpymaster: string | undefined;
+    teamOneOperative: string | undefined;
+    teamTwoSpymaster: string | undefined;
+    teamTwoOperative: string | undefined;
+  };
 
   /* The game board */
   // private board: GameCard[][];
 
-  /* The currently active hint word issued by a spymaster */
-  private _hint: string;
-
-  /* The number of words relevant to the hint issued by a spymaster */
-  private _hintAmount: number;
+  /* The currently active hint word issued by the spymaster. */
+  private _hint: { word: string; quantity: string };
 
   /* The amount of words for Team 1 that have not been correctly guessed */
   private _teamOneWordsRemaining: number;
@@ -98,13 +85,14 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     super();
     this._id = id;
     this._isActive = false;
-    this._turn = null;
-    this._teamOneSpymaster = null;
-    this._teamOneOperative = null;
-    this._teamTwoSpymaster = null;
-    this._teamTwoOperative = null;
-    this._hint = '';
-    this._hintAmount = 0;
+    this._turn = 'Spy1';
+    this._roles = {
+      teamOneSpymaster: undefined,
+      teamOneOperative: undefined,
+      teamTwoSpymaster: undefined,
+      teamTwoOperative: undefined,
+    };
+    this._hint = { word: '', quantity: '0' };
     this._teamOneWordsRemaining = 8;
     this._teamTwoWordsRemaining = 8;
   }
@@ -120,18 +108,14 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     if (this._occupants.find(occupant => occupant.id === player.id) === undefined) {
       throw new Error('Player is not inside the area');
     }
-    if (this._teamOneSpymaster === null) {
-      this._teamOneSpymaster = player;
-      this.emit('roleChange', player);
-    } else if (this._teamTwoSpymaster === null) {
-      this._teamTwoSpymaster = player;
-      this.emit('roleChange', player);
-    } else if (this._teamOneOperative === null) {
-      this._teamOneOperative = player;
-      this.emit('roleChange', player);
-    } else if (this._teamTwoOperative === null) {
-      this._teamTwoOperative = player;
-      this.emit('roleChange', player);
+    if (this._roles.teamOneSpymaster === undefined) {
+      this._roles.teamOneSpymaster = player.id;
+    } else if (this._roles.teamTwoSpymaster === undefined) {
+      this._roles.teamTwoSpymaster = player.id;
+    } else if (this._roles.teamOneOperative === undefined) {
+      this._roles.teamOneOperative = player.id;
+    } else if (this._roles.teamTwoOperative === undefined) {
+      this._roles.teamTwoOperative = player.id;
     } else {
       throw new Error('All roles have been filled!');
     }
@@ -143,34 +127,18 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
    * @param player Player to remove.
    */
   public removePlayer(player: PlayerController): void {
-    if (this._teamOneSpymaster !== null && this._teamOneSpymaster.id === player.id) {
-      this._teamOneSpymaster = null;
-      this.emit('roleChange', player);
-    } else if (this._teamOneOperative !== null && this._teamOneOperative.id === player.id) {
-      this._teamOneOperative = null;
-      this.emit('roleChange', player);
-    } else if (this._teamTwoSpymaster !== null && this._teamTwoSpymaster.id === player.id) {
-      this._teamTwoSpymaster = null;
-      this.emit('roleChange', player);
-    } else if (this._teamTwoOperative !== null && this._teamTwoOperative.id === player.id) {
-      this._teamTwoOperative = null;
-      this.emit('roleChange', player);
-    } else {
-      throw new Error('This player is not assigned to any roles!');
-    }
-  }
-
-  /**
-   * Sets the current hint and the amount of words the hint belongs to.
-   * Only a spymaster whose turn is the current turn can make a hint.
-   * @param newHint The word to set as the hint and the amount of words within the board that this hint correlates with.
-   */
-  public updateHint(newHint: { word: string; quantity: number }): void {
-    const word: string = newHint.word;
-    const quantity: number = newHint.quantity;
-    this._hint = word;
-    this._hintAmount = quantity;
-    this.emit('hintChange', newHint);
+    throw new Error('Not implemeneted yet');
+    // if (this._teamOneSpymaster !== undefined && this._teamOneSpymaster.id === player.id) {
+    //   this.teamOneSpymaster = undefined;
+    // } else if (this._teamOneOperative !== undefined && this._teamOneOperative.id === player.id) {
+    //   this.teamOneOperative = undefined;
+    // } else if (this._teamTwoSpymaster !== undefined && this._teamTwoSpymaster.id === player.id) {
+    //   this.teamTwoSpymaster = undefined;
+    // } else if (this._teamTwoOperative !== undefined && this._teamTwoOperative.id === player.id) {
+    //   this.teamTwoOperative = undefined;
+    // } else {
+    //   throw new Error('This player is not assigned to any roles!');
+    // }
   }
 
   /**
@@ -184,31 +152,41 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   }
 
   /**
-   * The PlayerController that represents team one's spymaster
+   *
    */
-  get teamOneSpymaster() {
-    return this._teamOneSpymaster;
+  get roles() {
+    return this._roles;
+  }
+
+  public set roles(newRoles: {
+    teamOneSpymaster: string | undefined;
+    teamOneOperative: string | undefined;
+    teamTwoSpymaster: string | undefined;
+    teamTwoOperative: string | undefined;
+  }) {
+    if (
+      this._roles.teamOneSpymaster !== newRoles.teamOneSpymaster ||
+      this._roles.teamOneOperative !== newRoles.teamOneOperative ||
+      this._roles.teamTwoSpymaster !== newRoles.teamTwoSpymaster ||
+      this._roles.teamTwoOperative !== newRoles.teamTwoOperative
+    ) {
+      this._roles = newRoles;
+      this.emit('roleChange', newRoles);
+    }
   }
 
   /**
-   * The PlayerController that represents team one's operative
+   * The current turn
    */
-  get teamOneOperative() {
-    return this._teamOneOperative;
+  get turn() {
+    return this._turn;
   }
 
-  /**
-   * The PlayerController that represents team two's spymaster
-   */
-  get teamTwoSpymaster() {
-    return this._teamTwoSpymaster;
-  }
-
-  /**
-   * The PlayerController that represents team two's operative
-   */
-  get teamTwoOperative() {
-    return this._teamTwoOperative;
+  public set turn(newTurn: string) {
+    if (this._turn !== newTurn) {
+      this._turn = newTurn;
+      this.emit('turnChange', newTurn);
+    }
   }
 
   /**
@@ -219,10 +197,15 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   }
 
   /**
-   * The number of words the hint corresponds to
+   * Sets the current hint and the amount of words the hint belongs to.
+   * Only a spymaster whose turn is the current turn can make a hint.
+   * @param newHint The word to set as the hint and the amount of words within the board that this hint correlates with.
    */
-  get hintAmount() {
-    return this._hintAmount;
+  public set hint(newHint: { word: string; quantity: string }) {
+    if (this._hint.word !== newHint.word || this._hint.quantity !== newHint.quantity) {
+      this._hint = newHint;
+      this.emit('hintChange', newHint);
+    }
   }
 
   /**
@@ -250,6 +233,26 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     return this._occupants;
   }
 
+  get teamOneWordsRemaining() {
+    return this._teamOneWordsRemaining;
+  }
+
+  public set teamOneWordsRemaining(newWordsRemaining: number) {
+    if (this._teamOneWordsRemaining !== newWordsRemaining) {
+      this._teamOneWordsRemaining = newWordsRemaining;
+    }
+  }
+
+  get teamTwoWordsRemaining() {
+    return this._teamTwoWordsRemaining;
+  }
+
+  public set teamTwoWordsRemaining(newWordsRemaining: number) {
+    if (this._teamTwoWordsRemaining !== newWordsRemaining) {
+      this._teamTwoWordsRemaining = newWordsRemaining;
+    }
+  }
+
   /**
    * A codenames area is empty if there are no occupants in it.
    */
@@ -261,27 +264,43 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
    * Return a representation of this CodenamesnAreaController that matches the
    * townService's representation and is suitable for transmitting over the network.
    */
-  // toCodenamesAreaModel(): CodenamesAreaModel {
-  //   return {
-  //     id: this.id,
-  //     occupantsByID: this.occupants.map(player => player.id),
-  //   };
-  // }
+  toCodenamesAreaModel(): CodenamesAreaModel {
+    return {
+      id: this.id,
+      turn: this.turn,
+      occupantsByID: this.occupants.map(player => player.id),
+      roles: this.roles,
+      hint: this.hint,
+      teamOneWordsRemaining: this.teamOneWordsRemaining,
+      teamTwoWordsRemaining: this.teamTwoWordsRemaining,
+    };
+  }
 
   /**
-   * Create a new CodenamesreaController to match a given CodenamesAreaModel
-   * @param codenamesAreaModel Codenames area to represent
+   * Create a new CodenamesAreaController to match a given CodenamesAreaModel
+   * @param codenamesAreaModel codenames area to represent
    * @param playerFinder A function that will return a list of PlayerController's
    *                     matching a list of Player ID's
    */
-  // static fromCodenamesAreaModel(
-  //   convAreaModel: CodenamesAreaModel,
-  //   playerFinder: (playerIDs: string[]) => PlayerController[],
-  // ): CodenamesAreaController {
-  //   const ret = new CodenamesAreaController(convAreaModel.id);
-  //   ret.occupants = playerFinder(convAreaModel.occupantsByID);
-  //   return ret;
-  // }
+  static fromCodenamesAreaModel(
+    codenamesAreaModel: CodenamesAreaModel,
+    playerFinder: (playerIDs: string[]) => PlayerController[],
+  ): CodenamesAreaController {
+    const ret = new CodenamesAreaController(codenamesAreaModel.id);
+    ret.occupants = playerFinder(codenamesAreaModel.occupantsByID);
+    return ret;
+  }
+
+  /**
+   *
+   */
+  public updateFrom(updatedModel: CodenamesAreaModel): void {
+    this.hint = updatedModel.hint;
+    this.roles = updatedModel.roles;
+    this.turn = updatedModel.turn;
+    this.teamOneWordsRemaining = updatedModel.teamOneWordsRemaining;
+    this.teamTwoWordsRemaining = updatedModel.teamTwoWordsRemaining;
+  }
 }
 
 /**

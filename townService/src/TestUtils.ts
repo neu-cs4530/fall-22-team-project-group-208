@@ -14,6 +14,7 @@ import Player from './lib/Player';
 import {
   BoundingBox,
   ClientToServerEvents,
+  CodenamesArea,
   ConversationArea,
   CoveyTownSocket,
   Direction,
@@ -201,4 +202,8 @@ export function isViewingArea(interactable: Interactable): interactable is Viewi
 
 export function isConversationArea(interactable: Interactable): interactable is ConversationArea {
   return 'topic' in interactable;
+}
+
+export function isCodenamesArea(interactable: Interactable): interactable is CodenamesArea {
+  return 'turn' in interactable;
 }

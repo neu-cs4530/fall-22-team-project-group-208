@@ -1,10 +1,11 @@
 import assert from 'assert';
 import EventEmitter from 'events';
-import _ from 'lodash';
+import _, { each } from 'lodash';
 import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import TypedEmitter from 'typed-emitter';
 import Interactable from '../components/Town/Interactable';
+import GameArea from '../components/Town/interactables/GameArea';
 import ViewingArea from '../components/Town/interactables/ViewingArea';
 import { LoginController } from '../contexts/LoginControllerContext';
 import { TownsService, TownsServiceClient } from '../generated/client';
@@ -16,7 +17,7 @@ import {
   TownSettingsUpdate,
   ViewingArea as ViewingAreaModel,
 } from '../types/CoveyTownSocket';
-import { isConversationArea, isViewingArea } from '../types/TypeUtils';
+import { isCodenamesArea, isConversationArea, isViewingArea } from '../types/TypeUtils';
 import CodenamesAreaController from './CodenamesAreaController';
 import ConversationAreaController from './ConversationAreaController';
 import PlayerController from './PlayerController';
@@ -448,18 +449,13 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
           eachArea => eachArea.id === interactable.id,
         );
         updatedViewingArea?.updateFrom(interactable);
+      } else if (isCodenamesArea(interactable)) {
+        const updatedCodenamesArea = this.codenamesAreas.find(c => c.id === interactable.id);
+        if (updatedCodenamesArea) {
+          updatedCodenamesArea.occupants = this._playersByIDs(interactable.occupantsByID);
+          updatedCodenamesArea.updateFrom(interactable);
+        }
       }
-      // else if (isCodenamesArea(interactable)) {
-      //   const updatedCodenamesArea = this.codenamesAreas.find(c => c.id === interactable.id);
-      //   if (updatedCodenamesArea) {
-      //     const emptyNow = updatedCodenamesArea.isEmpty();
-      //     updatedCodenamesArea.occupants = this._playersByIDs(interactable.occupantsByID);
-      //     const emptyAfterChange = updatedCodenamesArea.isEmpty();
-      //     if (emptyNow !== emptyAfterChange) {
-      //       this.emit('codenamesAreasChanged', this._codenamesAreasInternal);
-      //     }
-      //   }
-      // }
     });
   }
 
@@ -547,9 +543,8 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
    *
    * @param newArea
    */
-  async createCodenamesArea(newArea: { topic?: string; occupantsByID: Array<string> }) {
-    throw new Error('not implemented yet');
-    //await this._townsService.createConversationArea(this.townID, this.sessionToken, newArea);
+  async createCodenamesArea(newArea: { id: string }) {
+    //await this._townsService.createCodenamesArea(newArea.id);
   }
 
   /**
@@ -595,15 +590,14 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
             );
           } else if (isViewingArea(eachInteractable)) {
             this._viewingAreas.push(new ViewingAreaController(eachInteractable));
+          } else if (isCodenamesArea(eachInteractable)) {
+            this._codenamesAreasInternal.push(
+              CodenamesAreaController.fromCodenamesAreaModel(
+                eachInteractable,
+                this._playersByIDs.bind(this),
+              ),
+            );
           }
-          // else if (isCodenamesArea(eachInteractable)) {
-          //   this._codenamesAreasInternal.push(
-          //     CodenamesAreaController.fromCodenamesAreaModel(
-          //       eachInteractable,
-          //       this._playersByIDs.bind(this),
-          //     ),
-          //   );
-          // }
         });
         this._userID = initialData.userID;
         this._ourPlayer = this.players.find(eachPlayer => eachPlayer.id == this.userID);
@@ -636,6 +630,25 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         video: viewingArea.defaultVideoURL,
       });
       this._viewingAreas.push(newController);
+      return newController;
+    }
+  }
+
+  /**
+   * Retrieve the codenames area controller that corresponds to a codenamesAreaModel, creating one if necessary
+   *
+   * @param codenamesArea
+   * @returns
+   */
+  public getCodenamesAreaController(codenamesArea: GameArea): CodenamesAreaController {
+    const existingController = this._codenamesAreas.find(
+      eachExistingArea => eachExistingArea.id === codenamesArea.name,
+    );
+    if (existingController) {
+      return existingController;
+    } else {
+      const newController = new CodenamesAreaController(codenamesArea.name);
+      this._codenamesAreas.push(newController);
       return newController;
     }
   }

@@ -6,7 +6,6 @@ import SocialSidebar from '../SocialSidebar/SocialSidebar';
 import NewConversationModal from './interactables/NewCoversationModal';
 import TownGameScene from './TownGameScene';
 import CodenamesGameArea from './interactables/CodenamesGameArea';
-import CodenamesAreaWrapper from './interactables/CodenamesGameArea';
 
 export default function TownMap(): JSX.Element {
   const coveyTownController = useTownController();
