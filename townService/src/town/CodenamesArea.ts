@@ -1,19 +1,15 @@
 import { ITiledMapObject } from '@jonbell/tiled-map-type-guard';
-import Player from '../lib/Player';
-import { BoundingBox, TownEmitter } from '../types/CoveyTownSocket';
+import {
+  BoundingBox,
+  CodenamesArea as CodenamesAreaModel,
+  TownEmitter,
+} from '../types/CoveyTownSocket';
 import InteractableArea from './InteractableArea';
 import { POSSIBLE_WORDS, Team, GameCard } from './GameCard';
 
-enum Turn {
-  BlueSpymaster,
-  BlueOperative,
-  RedSpymaster,
-  RedOperative,
-}
-
-const CARDS_ON_BOARD_COUNT : number = 25;
-const CARDS_FOR_BLUE_TEAM : number = 9; // Blue gets an extra card since Blue goes first
-const CARDS_FOR_RED_TEAM : number = 8;
+const CARDS_ON_BOARD_COUNT = 25;
+const CARDS_FOR_BLUE_TEAM = 8;
+const CARDS_FOR_RED_TEAM = 8;
 
 export default class CodenamesArea extends InteractableArea {
   /* Whether or not the game is currently actively in play. 
@@ -21,28 +17,21 @@ export default class CodenamesArea extends InteractableArea {
   private _isActive: boolean;
 
   /* The current player whose turn is active. */
-  public _turn: Turn;
+  private _turn: string;
 
-  /* The spymaster for team one. */
-  private _blueSpymasterId?: number;
-
-  /* The operative for team one. */
-  private _blueOperativeId?: number;
-
-  /* The spymaster for team two. */
-  private _redSpymasterId?: number;
-
-  /* The operative for team two. */
-  private _redOperativeId?: number;
+  /* A struct to represent all roles in a Codenames game */
+  private _roles: {
+    teamOneSpymaster: string | undefined;
+    teamOneOperative: string | undefined;
+    teamTwoSpymaster: string | undefined;
+    teamTwoOperative: string | undefined;
+  };
 
   /* The board */
-  private _board : GameCard[];
+  private _board: GameCard[];
 
   /* The currently active hint word issued by the spymaster. */
-  private _hint?: String;
-
-  /* The number of words relevant to the hint issued by the spymaster */
-  private _hintedAmount?: number;
+  private _hint: { word: string; quantity: string };
 
   /* The amount of words for Team 1 that have not been revealed. */
   private _blueWordsRemaining: number;
@@ -57,50 +46,54 @@ export default class CodenamesArea extends InteractableArea {
   public constructor(id: string, coordinates: BoundingBox, townEmitter: TownEmitter) {
     super(id, coordinates, townEmitter);
     this._isActive = false;
-    this._turn = Turn.BlueSpymaster;
+    this._turn = 'Spy1';
     this._board = [];
-    this._blueWordsRemaining = 0;
-    this._redWordsRemaining = 0;
+    this._roles = {
+      teamOneSpymaster: undefined,
+      teamOneOperative: undefined,
+      teamTwoSpymaster: undefined,
+      teamTwoOperative: undefined,
+    };
+    this._hint = { word: '', quantity: '0' };
+    this._blueWordsRemaining = CARDS_FOR_BLUE_TEAM;
+    this._redWordsRemaining = CARDS_FOR_RED_TEAM;
   }
 
   /**
    * Checks if all 4 roles have been fulfilled, and if so, generates the board, starts the game, and sets the starting player as the Blue Spymaster.
-   * 
+   *
    * Generates 9 blue cards, 8 red cards, and 1 assassin card. All other cards will be neutral.
    */
-  private attemptToStartGame(): void {
-    if (this._blueSpymasterId !== undefined && this._redSpymasterId !== undefined 
-      && this._blueOperativeId !== undefined && this._redOperativeId !== undefined) {
-        this._board = GameCard.initializeCards();
-        this._isActive = true;
-        this._turn = Turn.BlueSpymaster;
+  private _attemptToStartGame(): void {
+    if (
+      this._roles.teamOneSpymaster !== undefined &&
+      this._roles.teamTwoSpymaster !== undefined &&
+      this._roles.teamOneOperative !== undefined &&
+      this._roles.teamTwoOperative !== undefined
+    ) {
+      this._board = GameCard.initializeCards();
+      this._isActive = true;
     }
   }
 
   /**
    * Assigns the player to a role, if there is any undefined role.
-   * 
+   *
    * Attempts to start the game, and game will start if all 4 roles are fulfilled.
    *
    * @param playerId Player ID to add.
    */
-  public joinPlayer(playerId: number): void {
-    if (this._blueSpymasterId === undefined) {
-      this._blueSpymasterId = playerId;
-      this.attemptToStartGame();
+  public joinPlayer(playerId: string): void {
+    if (this._roles.teamOneSpymaster === undefined) {
+      this._roles.teamOneSpymaster = playerId;
+    } else if (this._roles.teamTwoSpymaster === undefined) {
+      this._roles.teamTwoSpymaster = playerId;
+    } else if (this._roles.teamOneOperative === undefined) {
+      this._roles.teamOneOperative = playerId;
+    } else if (this._roles.teamTwoOperative === undefined) {
+      this._roles.teamTwoOperative = playerId;
     }
-    else if (this._redSpymasterId === undefined) {
-      this._redSpymasterId = playerId;
-      this.attemptToStartGame();
-    }
-    else if (this._blueOperativeId === undefined) {
-      this._blueOperativeId = playerId;
-      this.attemptToStartGame();
-    }
-    else if (this._redOperativeId === undefined) {
-      this._redOperativeId = playerId;
-      this.attemptToStartGame();
-    }
+    this._attemptToStartGame();
   }
 
   /**
@@ -112,23 +105,42 @@ export default class CodenamesArea extends InteractableArea {
    *
    * @param player Player ID to remove.
    */
-  public removePlayer(playerId: number): void {
-    if (this._blueSpymasterId === playerId) {
-      this._blueSpymasterId = undefined;
-      this._isActive = false;
+  public removePlayer(playerId: string): void {
+    if (this._roles.teamOneSpymaster === playerId) {
+      this._roles.teamOneSpymaster = undefined;
+    } else if (this._roles.teamTwoSpymaster === playerId) {
+      this._roles.teamTwoSpymaster = undefined;
+    } else if (this._roles.teamOneOperative === playerId) {
+      this._roles.teamOneOperative = undefined;
+    } else if (this._roles.teamTwoOperative === playerId) {
+      this._roles.teamTwoOperative = undefined;
     }
-    else if (this._redSpymasterId === playerId) {
-      this._redSpymasterId = undefined;
-      this._isActive = false;
+    this._isActive = false;
+  }
+
+  /**
+   * Changes the turn given the current turn
+   *
+   * @param turn The current game turn
+   */
+  private _changeTurn() {
+    switch (this._turn) {
+      case 'Spy1':
+        this._turn = 'Op1';
+        break;
+      case 'Spy2':
+        this._turn = 'Op2';
+        break;
+      case 'Op1':
+        this._turn = 'Spy2';
+        break;
+      case 'Op2':
+        this._turn = 'Spy1';
+        break;
+      default:
+        // Technically, this error should never throw in the actual game lol
+        throw new Error('this._turn must be one of the four');
     }
-    else if (this._blueOperativeId === playerId) {
-      this._blueOperativeId = undefined;
-      this._isActive = false;
-    }
-    else if (this._redOperativeId === playerId) {
-      this._redOperativeId = undefined;
-      this._isActive = false;
-    }  
   }
 
   /**
@@ -137,32 +149,32 @@ export default class CodenamesArea extends InteractableArea {
    * @param hint The word to set as the hint.
    * @param hintedAmount The amount of words within the board that this hint correlates with.
    */
-  public setHint(hint: string, hintedAmount: number): void {
-    if (this._turn == Turn.BlueSpymaster) {
-      this._hint = hint;
-      this._hintedAmount = hintedAmount;
-      this._turn = Turn.BlueOperative;
-    }
-    else if (this._turn == Turn.RedSpymaster) {
-      this._hint = hint;
-      this._hintedAmount = hintedAmount;
-      this._turn = Turn.RedOperative;
-    }
+  public setHint(hint: { word: string; quantity: string }): void {
+    this._hint = hint;
+    this._changeTurn();
+    // if (this._turn == 'Spy1') {
+    //   this._hint = hint;
+    //   this._turn = 'Op1'
+    // } else if (this._turn == 'Turn.RedSpymaster') {
+    //   this._hint = hint;
+    //   this._hintedAmount = hintedAmount;
+    //   this._turn = Turn.RedOperative;
+    // }
   }
 
   /**
    * Checks if all guesses within a list of guesses are valid.
-   * 
+   *
    * @param guesses The coordinates within the grid that is being guessed.
    */
-  private allGuessesValid(guesses: number[]): boolean {
-    let _allGuessesValid : boolean = true;
-    guesses.forEach((guess) => {
-      if (guess < 0 || guess >= this._board.length || this._board[guess]._guessed == true) {
-        _allGuessesValid = false;
+  private _allGuessesValid(guesses: number[]): boolean {
+    let allGuessesValid = true;
+    guesses.forEach(guess => {
+      if (guess < 0 || guess >= this._board.length || this._board[guess]._guessed === true) {
+        allGuessesValid = false;
       }
     });
-    return _allGuessesValid;
+    return allGuessesValid;
   }
 
   /**
@@ -171,41 +183,37 @@ export default class CodenamesArea extends InteractableArea {
    * Guesses must be unrevealed and within bounds of the board. If either of these conditions are violated by any guess, then none of the guesses will be played.
    *
    * Reveals cards, and determines the next turn/whether or not a team has won this round.
-   * 
-   * @param guesses The coordinates within the grid that is being guessed.
+   *
+   * @param guesses the "index" of the card being guessed
    */
   public makeGuess(guesses: number[]): void {
-    if (this.allGuessesValid(guesses)) {
+    if (this._allGuessesValid(guesses)) {
       let allGuessesCorrect = true;
       let bombFound = false;
       let activeTeamColor = Team.Neutral;
       let opposingTeamColor = Team.Neutral;
-  
-      if (this._turn == Turn.BlueOperative) {
+
+      if (this._turn === 'Op1') {
         activeTeamColor = Team.Blue;
         opposingTeamColor = Team.Red;
-      }
-      else if (this._turn == Turn.RedOperative) {
+      } else if (this._turn === 'Op2') {
         activeTeamColor = Team.Red;
         opposingTeamColor = Team.Blue;
-      }
-      else {
+      } else {
         return;
       }
 
-      guesses.forEach((guess) => {
-        const currentCard : GameCard = this._board[guess];
-        if (currentCard._team == Team.Bomb) {
+      guesses.forEach(guess => {
+        const currentCard: GameCard = this._board[guess];
+        if (currentCard._team === Team.Bomb) {
           bombFound = true;
-        }
-        else if (currentCard._team != activeTeamColor) {
+        } else if (currentCard._team !== activeTeamColor) {
           allGuessesCorrect = false;
         }
 
-        if (currentCard._team == Team.Blue) {
+        if (currentCard._team === Team.Blue) {
           this._blueWordsRemaining -= 1;
-        }
-        else if (currentCard._team == Team.Red) {
+        } else if (currentCard._team === Team.Red) {
           this._redWordsRemaining -= 1;
         }
         currentCard._guessed = true;
@@ -214,44 +222,44 @@ export default class CodenamesArea extends InteractableArea {
       if (bombFound) {
         this._winningTeam = opposingTeamColor;
         this._isActive = false;
-      }
-      else {
-        if (activeTeamColor == Team.Blue) {
-          if (allGuessesCorrect) {
-            this._turn = Turn.BlueSpymaster;
-          }
-          else {
-            this._turn = Turn.RedSpymaster;
-          }
+      } else if (activeTeamColor === Team.Blue) {
+        if (allGuessesCorrect) {
+          this._turn = 'Spy1';
+        } else {
+          this._turn = 'Spy2';
         }
-        else if (activeTeamColor == Team.Red) {
-          if (allGuessesCorrect) {
-            this._turn = Turn.RedSpymaster;
-          }
-          else {
-            this._turn = Turn.BlueSpymaster;
-          }
+      } else if (activeTeamColor === Team.Red) {
+        if (allGuessesCorrect) {
+          this._turn = 'Spy2';
+        } else {
+          this._turn = 'Spy1';
         }
       }
 
-      if (this._blueWordsRemaining == 0) {
+      if (this._blueWordsRemaining === 0) {
         this._winningTeam = Team.Blue;
         this._isActive = false;
-      }
-      else if (this._redWordsRemaining == 0) {
+      } else if (this._redWordsRemaining === 0) {
         this._winningTeam = Team.Red;
         this._isActive = false;
       }
-
     }
   }
 
   /**
-   * Convert this ConversationArea instance to a simple ConversationAreaModel suitable for
+   * Convert this CodenamesArea instance to a simple CodenamesAreaModel suitable for
    * transporting over a socket to a client.
    */
-  public toModel(): InteractableArea {
-    throw new Error('To be implemented');
+  public toModel(): CodenamesAreaModel {
+    return {
+      id: this.id,
+      turn: this._turn,
+      occupantsID: this.occupantsByID,
+      roles: this._roles,
+      hint: this._hint,
+      teamOneWordsRemaining: this._blueWordsRemaining,
+      teamTwoWordsRemaining: this._redWordsRemaining,
+    };
   }
 
   /**
