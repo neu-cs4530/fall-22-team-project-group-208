@@ -1,5 +1,3 @@
-import CodenamesAreaController from '../../../classes/CodenamesAreaController';
-import TownController from '../../../classes/TownController';
 import Interactable, { KnownInteractableTypes } from '../Interactable';
 import TownGameScene from '../TownGameScene';
 
@@ -8,16 +6,10 @@ export default class GameArea extends Interactable {
 
   private _isInteracting = false;
 
-  private _codenamesArea?: CodenamesAreaController;
-
-  private _townController: TownController;
-
   constructor(scene: TownGameScene) {
     super(scene);
-    this._townController = scene.coveyTownController;
     this.setTintFill();
     this.setAlpha(0.3);
-    this._townController.addListener('codenamesAreasChanged', this._updateCodenamesAreas);
   }
 
   addedToScene() {
@@ -32,6 +24,7 @@ export default class GameArea extends Interactable {
       { color: '#FFFFFF', backgroundColor: '#000000' },
     );
     this._labelText.setVisible(false);
+    //this.townController.getCodenamesAreaController(this);
   }
 
   overlap(): void {
