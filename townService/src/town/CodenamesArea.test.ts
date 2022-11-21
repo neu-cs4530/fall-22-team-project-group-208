@@ -9,15 +9,21 @@ describe('CodenamesArea', () => {
   const testAreaBox = { x: 100, y: 100, width: 100, height: 100 };
   let testArea: CodenamesArea;
   const townEmitter = mock<TownEmitter>();
-  const topic = nanoid();
   const id = nanoid();
   let newPlayer: Player;
+  let roles = {};
 
   beforeEach(() => {
     mockClear(townEmitter);
     testArea = new CodenamesArea(id, testAreaBox, townEmitter);
     newPlayer = new Player(nanoid(), mock<TownEmitter>());
     testArea.add(newPlayer);
+    roles = {
+      teamOneSpymaster: undefined,
+      teamOneOperative: undefined,
+      teamTwoSpymaster: undefined,
+      teamTwoOperative: undefined,
+    };
   });
 
   describe('add', () => {
@@ -25,7 +31,15 @@ describe('CodenamesArea', () => {
       expect(testArea.occupantsByID).toEqual([newPlayer.id]);
 
       const lastEmittedUpdate = getLastEmittedEvent(townEmitter, 'interactableUpdate');
-      expect(lastEmittedUpdate).toEqual({ topic, id, occupantsByID: [newPlayer.id] });
+      expect(lastEmittedUpdate).toEqual({
+        id,
+        turn: 'Spy1',
+        occupantsID: [newPlayer.id],
+        roles,
+        hint: { word: '', quantity: '0' },
+        teamOneWordsRemaining: 8,
+        teamTwoWordsRemaining: 8,
+      });
     });
     it("Sets the player's conversationLabel and emits an update for their location", () => {
       expect(newPlayer.location.interactableID).toEqual(id);
@@ -43,15 +57,27 @@ describe('CodenamesArea', () => {
 
       expect(testArea.occupantsByID).toEqual([extraPlayer.id]);
       const lastEmittedUpdate = getLastEmittedEvent(townEmitter, 'interactableUpdate');
-      expect(lastEmittedUpdate).toEqual({ topic, id, occupantsByID: [extraPlayer.id] });
+      expect(lastEmittedUpdate).toEqual({
+        id,
+        turn: 'Spy1',
+        occupantsID: [extraPlayer.id],
+        roles,
+        hint: { word: '', quantity: '0' },
+        teamOneWordsRemaining: 8,
+        teamTwoWordsRemaining: 8,
+      });
     });
   });
-  test('toModel sets the ID, topic and occupantsByID and sets no other properties', () => {
+  test('toModel sets the properties needed for a simple CodenamesAreaModel', () => {
     const model = testArea.toModel();
     expect(model).toEqual({
       id,
-      topic,
-      occupantsByID: [newPlayer.id],
+      turn: 'Spy1',
+      occupantsID: [newPlayer.id],
+      roles,
+      hint: { word: '', quantity: '0' },
+      teamOneWordsRemaining: 8,
+      teamTwoWordsRemaining: 8,
     });
   });
   describe('fromMapObject', () => {

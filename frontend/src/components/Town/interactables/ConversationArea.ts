@@ -104,6 +104,7 @@ export default class ConversationArea extends Interactable {
     if (this._conversationArea === undefined) {
       this._showInfoBox();
     }
+    this._showInfoBox();
   }
 
   overlapExit(): void {
