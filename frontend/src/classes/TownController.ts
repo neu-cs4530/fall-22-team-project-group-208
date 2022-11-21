@@ -16,7 +16,7 @@ import {
   TownSettingsUpdate,
   ViewingArea as ViewingAreaModel,
 } from '../types/CoveyTownSocket';
-import { isConversationArea, isViewingArea } from '../types/TypeUtils';
+import { isConversationArea, isViewingArea, isCodenamesArea } from '../types/TypeUtils';
 import CodenamesAreaController from './CodenamesAreaController';
 import ConversationAreaController from './ConversationAreaController';
 import PlayerController from './PlayerController';
@@ -133,13 +133,13 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   private _playersInternal: PlayerController[] = [];
 
   /**
-   * The current list of conversation areas in the twon. Adding or removing conversation areas might
+   * The current list of conversation areas in the town. Adding or removing conversation areas might
    * replace the array with a new one; clients should take note not to retain stale references.
    */
   private _conversationAreasInternal: ConversationAreaController[] = [];
 
   /**
-   * The current list of conversation areas in the twon. Adding or removing conversation areas might
+   * The current list of codenames areas in the town. Adding or removing codenames areas might
    * replace the array with a new one; clients should take note not to retain stale references.
    */
   private _codenamesAreasInternal: CodenamesAreaController[] = [];
@@ -448,18 +448,18 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
           eachArea => eachArea.id === interactable.id,
         );
         updatedViewingArea?.updateFrom(interactable);
+      } else if (isCodenamesArea(interactable)) {
+        const updatedCodenamesArea = this.codenamesAreas.find(c => c.id === interactable.id);
+        if (updatedCodenamesArea) {
+          // TODO: Send whatever relevant new information from backend to CodenamesAreaController
+          // const emptyNow = updatedCodenamesArea.isEmpty();
+          // updatedCodenamesArea.occupants = this._playersByIDs(interactable.occupantsByID);
+          // const emptyAfterChange = updatedCodenamesArea.isEmpty();
+          // if (emptyNow !== emptyAfterChange) {
+          //   this.emit('codenamesAreasChanged', this._codenamesAreasInternal);
+          // }
+        }
       }
-      // else if (isCodenamesArea(interactable)) {
-      //   const updatedCodenamesArea = this.codenamesAreas.find(c => c.id === interactable.id);
-      //   if (updatedCodenamesArea) {
-      //     const emptyNow = updatedCodenamesArea.isEmpty();
-      //     updatedCodenamesArea.occupants = this._playersByIDs(interactable.occupantsByID);
-      //     const emptyAfterChange = updatedCodenamesArea.isEmpty();
-      //     if (emptyNow !== emptyAfterChange) {
-      //       this.emit('codenamesAreasChanged', this._codenamesAreasInternal);
-      //     }
-      //   }
-      // }
     });
   }
 
@@ -538,18 +538,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
    */
   async createViewingArea(newArea: ViewingAreaModel) {
     await this._townsService.createViewingArea(this.townID, this.sessionToken, newArea);
-  }
-
-  /**
-   * Create a new codenames area, sending the request to the townService. Throws an error if the request
-   * is not successful. Does not immediately update local state about the new codenames area - it will be
-   * updated once the townService creates the area and emits an interactableUpdate
-   *
-   * @param newArea
-   */
-  async createCodenamesArea(newArea: { topic?: string; occupantsByID: Array<string> }) {
-    throw new Error('not implemented yet');
-    //await this._townsService.createConversationArea(this.townID, this.sessionToken, newArea);
   }
 
   /**

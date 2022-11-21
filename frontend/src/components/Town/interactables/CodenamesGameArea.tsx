@@ -19,7 +19,7 @@ export default function CodenamesGameArea({
   controller: CodenamesAreaController;
 }): JSX.Element {
   const coveyTownController = useTownController();
-  const newCodenames = useInteractable('gameArea');
+  const newCodenames = useInteractable('codenamesArea');
   const [isGameFull, setIsGameFull] = useState<boolean>(false);
   const [currentTurn, setCurrentTurn] = useState<Turn>(Turn.TeamOneSpymaster);
   const isOpen = newCodenames !== undefined;
