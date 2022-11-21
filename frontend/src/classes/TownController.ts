@@ -452,8 +452,13 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       } else if (isCodenamesArea(interactable)) {
         const updatedCodenamesArea = this.codenamesAreas.find(c => c.id === interactable.id);
         if (updatedCodenamesArea) {
-          updatedCodenamesArea.occupants = this._playersByIDs(interactable.occupantsByID);
+          const emptyNow = updatedCodenamesArea.occupants.length === 0;
+          updatedCodenamesArea.occupants = this._playersByIDs(interactable.occupantsID);
           updatedCodenamesArea.updateFrom(interactable);
+          const emptyAfterChange = updatedCodenamesArea.occupants.length === 0;
+          if (emptyNow !== emptyAfterChange) {
+            this.emit('codenamesAreasChanged', this._codenamesAreasInternal);
+          }
         }
       }
     });
@@ -543,8 +548,24 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
    *
    * @param newArea
    */
-  async createCodenamesArea(newArea: { id: string }) {
-    //await this._townsService.createCodenamesArea(newArea.id);
+  async createCodenamesArea(newArea: {
+    id: string;
+    turn: string;
+    occupantsID: Array<string>;
+    roles: {
+      teamTwoOperative?: string;
+      teamTwoSpymaster?: string;
+      teamOneOperative?: string;
+      teamOneSpymaster?: string;
+    };
+    hint: {
+      quantity: string;
+      word: string;
+    };
+    teamOneWordsRemaining: number;
+    teamTwoWordsRemaining: number;
+  }) {
+    await this._townsService.createCodenamesArea(this.townID, this.sessionToken, newArea);
   }
 
   /**
@@ -660,6 +681,13 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
    */
   public emitViewingAreaUpdate(viewingArea: ViewingAreaController) {
     this._socket.emit('interactableUpdate', viewingArea.viewingAreaModel());
+  }
+
+  /**
+   *
+   */
+  public emitCodenamesAreaUpdate(codenamesArea: CodenamesAreaController) {
+    this._socket.emit('interactableUpdate', codenamesArea.toCodenamesAreaModel());
   }
 
   /**

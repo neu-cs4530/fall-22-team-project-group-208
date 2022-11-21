@@ -1,14 +1,17 @@
 import {
+  Button,
   Modal,
   ModalBody,
   ModalCloseButton,
   ModalContent,
   ModalHeader,
   ModalOverlay,
+  useToast,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useCodenamesAreaController, useInteractable } from '../../../classes/TownController';
 import useTownController from '../../../hooks/useTownController';
+import { CodenamesArea as CodenamesAreaModel } from '../../../types/CoveyTownSocket';
 import CodenamesAreaInteractable from './GameArea';
 
 export function CodenamesGameArea({
@@ -19,6 +22,14 @@ export function CodenamesGameArea({
   const coveyTownController = useTownController();
   const codenamesAreaController = useCodenamesAreaController(codenamesArea.id);
   const [isGameFull, setIsGameFull] = useState<boolean>(false);
+  const [currentTurn, setCurrentTurn] = useState<string>('Spy1');
+  const [occupants, setOccupants] = useState(codenamesAreaController.occupants);
+  const isSpymaster =
+    coveyTownController.ourPlayer.id === codenamesAreaController.roles.teamOneSpymaster ||
+    coveyTownController.ourPlayer.id === codenamesAreaController.roles.teamTwoSpymaster;
+  const isTeamOne =
+    coveyTownController.ourPlayer.id === codenamesAreaController.roles.teamOneSpymaster ||
+    coveyTownController.ourPlayer.id === codenamesAreaController.roles.teamOneOperative;
   const isOpen = codenamesArea !== undefined;
 
   useEffect(() => {
@@ -37,14 +48,63 @@ export function CodenamesGameArea({
   }, [coveyTownController, codenamesArea]);
 
   /* when the players are updated, checks whether the game is full */
+  /** listen for role change, hint change, turn change */
   useEffect(() => {
-    console.log(codenamesAreaController.occupants.length);
-    if (codenamesAreaController.occupants.length === 4) {
+    //codenamesAreaController.addListener('occupantsChange', setOccupants);
+    if (occupants.length === 4) {
       setIsGameFull(true);
     } else {
       setIsGameFull(false);
     }
-  }, [codenamesAreaController]);
+    return () => {
+      //codenamesAreaController.removeListener('occupantsChange', setOccupants);
+    };
+  }, [codenamesAreaController, occupants]);
+
+  const toast = useToast();
+
+  const createCodenames = useCallback(async () => {
+    if (codenamesArea) {
+      const codenamesToCreate: CodenamesAreaModel = {
+        id: codenamesAreaController.id,
+        occupantsID: [],
+        turn: 'Spy1',
+        roles: {
+          teamOneSpymaster: undefined,
+          teamOneOperative: undefined,
+          teamTwoSpymaster: undefined,
+          teamTwoOperative: undefined,
+        },
+        hint: {
+          word: '',
+          quantity: '0',
+        },
+        teamOneWordsRemaining: 8,
+        teamTwoWordsRemaining: 8,
+      };
+      try {
+        await coveyTownController.createCodenamesArea(codenamesToCreate);
+        toast({
+          title: 'Codenames Created!',
+          status: 'success',
+        });
+      } catch (err) {
+        if (err instanceof Error) {
+          toast({
+            title: 'Unable to create game',
+            description: err.toString(),
+            status: 'error',
+          });
+        } else {
+          console.trace(err);
+          toast({
+            title: 'Unexpected Error',
+            status: 'error',
+          });
+        }
+      }
+    }
+  }, [codenamesArea, codenamesAreaController, coveyTownController, toast]);
 
   return (
     <Modal
@@ -58,9 +118,10 @@ export function CodenamesGameArea({
       <ModalContent hidden={isGameFull}>
         <ModalHeader>New Codenames Game</ModalHeader>
         <ModalCloseButton />
-        <ModalBody>
-          Waiting for {4 - codenamesAreaController.occupants.length} more players.
-        </ModalBody>
+        <Button colorScheme='blue' mr={3} onClick={createCodenames}>
+          Join Game
+        </Button>
+        <ModalBody>Waiting for {4 - occupants.length} more players.</ModalBody>
       </ModalContent>
       <ModalContent hidden={!isGameFull}>
         <ModalHeader>New Codenames Game</ModalHeader>

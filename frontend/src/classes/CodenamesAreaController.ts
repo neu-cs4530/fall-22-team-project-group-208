@@ -268,7 +268,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     return {
       id: this.id,
       turn: this.turn,
-      occupantsByID: this.occupants.map(player => player.id),
+      occupantsID: this.occupants.map(player => player.id),
       roles: this.roles,
       hint: this.hint,
       teamOneWordsRemaining: this.teamOneWordsRemaining,
@@ -287,7 +287,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     playerFinder: (playerIDs: string[]) => PlayerController[],
   ): CodenamesAreaController {
     const ret = new CodenamesAreaController(codenamesAreaModel.id);
-    ret.occupants = playerFinder(codenamesAreaModel.occupantsByID);
+    ret.occupants = playerFinder(codenamesAreaModel.occupantsID);
     return ret;
   }
 
@@ -308,13 +308,13 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
  *
  * This hook will re-render any components that use it when the set of occupants changes.
  */
-// export function useCodenamesAreaOccupants(area: CodenamesAreaController): PlayerController[] {
-//   const [occupants, setOccupants] = useState(area.occupants);
-//   useEffect(() => {
-//     area.addListener('occupantsChange', setOccupants);
-//     return () => {
-//       area.removeListener('occupantsChange', setOccupants);
-//     };
-//   }, [area]);
-//   return occupants;
-// }
+export function useCodenamesAreaOccupants(area: CodenamesAreaController): PlayerController[] {
+  const [occupants, setOccupants] = useState(area.occupants);
+  useEffect(() => {
+    area.addListener('occupantsChange', setOccupants);
+    return () => {
+      area.removeListener('occupantsChange', setOccupants);
+    };
+  }, [area]);
+  return occupants;
+}

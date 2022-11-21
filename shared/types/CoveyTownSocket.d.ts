@@ -73,7 +73,7 @@ export interface ViewingArea {
 export interface CodenamesArea {
   id: string;
   turn: string;
-  occupantsByID: string[];
+  occupantsID: string[];
   roles: {
   teamOneSpymaster: string | undefined;
   teamOneOperative: string | undefined;
