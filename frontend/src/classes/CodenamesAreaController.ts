@@ -175,6 +175,10 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     }
   }
 
+  get isActive() {
+    return this._isActive;
+  }
+
   /**
    * The current turn
    */

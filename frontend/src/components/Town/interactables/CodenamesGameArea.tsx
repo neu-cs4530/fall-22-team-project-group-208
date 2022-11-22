@@ -1,13 +1,18 @@
 import {
   Button,
+  FormControl,
+  FormLabel,
+  Input,
   Modal,
   ModalBody,
   ModalCloseButton,
   ModalContent,
+  ModalFooter,
   ModalHeader,
   ModalOverlay,
   useToast,
 } from '@chakra-ui/react';
+import { isEmpty } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useCodenamesAreaController, useInteractable } from '../../../classes/TownController';
 import useTownController from '../../../hooks/useTownController';
@@ -23,7 +28,6 @@ export function CodenamesGameArea({
   const codenamesAreaController = useCodenamesAreaController(codenamesArea.id);
   const [isGameFull, setIsGameFull] = useState<boolean>(false);
   const [currentTurn, setCurrentTurn] = useState<string>('Spy1');
-  const [occupants, setOccupants] = useState(codenamesAreaController.occupants);
   const isSpymaster =
     coveyTownController.ourPlayer.id === codenamesAreaController.roles.teamOneSpymaster ||
     coveyTownController.ourPlayer.id === codenamesAreaController.roles.teamTwoSpymaster;
@@ -38,33 +42,26 @@ export function CodenamesGameArea({
     } else {
       coveyTownController.unPause();
     }
-  }, [coveyTownController, codenamesArea]);
-
-  /* closes screen when exit is pressed */
-  const closeGame = useCallback(() => {
-    if (codenamesArea) {
-      coveyTownController.interactEnd(codenamesArea);
-    }
-  }, [coveyTownController, codenamesArea]);
-
-  /* when the players are updated, checks whether the game is full */
-  /** listen for role change, hint change, turn change */
-  useEffect(() => {
-    //codenamesAreaController.addListener('occupantsChange', setOccupants);
-    if (occupants.length === 4) {
+    // change to if boolean that all 4 players have been assigned roles returns true
+    if (codenamesAreaController.isActive) {
       setIsGameFull(true);
     } else {
       setIsGameFull(false);
     }
-    return () => {
-      //codenamesAreaController.removeListener('occupantsChange', setOccupants);
-    };
-  }, [codenamesAreaController, occupants]);
+  }, [coveyTownController, codenamesArea, codenamesAreaController]);
+
+  /* closes screen when exit is pressed */
+  const closeModal = useCallback(() => {
+    if (codenamesArea) {
+      coveyTownController.interactEnd(codenamesArea);
+      coveyTownController.unPause();
+    }
+  }, [codenamesArea, coveyTownController]);
 
   const toast = useToast();
 
   const createCodenames = useCallback(async () => {
-    if (codenamesArea) {
+    if (codenamesAreaController) {
       const codenamesToCreate: CodenamesAreaModel = {
         id: codenamesAreaController.id,
         occupantsID: [],
@@ -85,13 +82,13 @@ export function CodenamesGameArea({
       try {
         await coveyTownController.createCodenamesArea(codenamesToCreate);
         toast({
-          title: 'Codenames Created!',
+          title: 'Codenames joined!',
           status: 'success',
         });
       } catch (err) {
         if (err instanceof Error) {
           toast({
-            title: 'Unable to create game',
+            title: 'Unable to join game',
             description: err.toString(),
             status: 'error',
           });
@@ -104,29 +101,51 @@ export function CodenamesGameArea({
         }
       }
     }
-  }, [codenamesArea, codenamesAreaController, coveyTownController, toast]);
+  }, [codenamesAreaController, coveyTownController, toast]);
+
+  /**
+   * add an else if checking if game is full
+   */
+  function joinCodenames() {
+    if (codenamesAreaController.occupants.length === 0) {
+      createCodenames();
+      closeModal();
+    } else {
+      toast({
+        title: 'Game is currently full!',
+        status: 'error',
+      });
+      closeModal();
+    }
+  }
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={() => {
-        closeGame();
+        closeModal();
         coveyTownController.unPause();
       }}>
-      {/** Displays the waiting screen and changes to the gameboard if the game is now full. */}
       <ModalOverlay />
-      <ModalContent hidden={isGameFull}>
-        <ModalHeader>New Codenames Game</ModalHeader>
-        <ModalCloseButton />
-        <Button colorScheme='blue' mr={3} onClick={createCodenames}>
-          Join Game
-        </Button>
-        <ModalBody>Waiting for {4 - occupants.length} more players.</ModalBody>
-      </ModalContent>
       <ModalContent hidden={!isGameFull}>
-        <ModalHeader>New Codenames Game</ModalHeader>
+        <ModalHeader>Game is currently full!</ModalHeader>
         <ModalCloseButton />
-        <ModalBody>Gameboard</ModalBody>
+        <ModalBody>Please try joining again once the game is finished.</ModalBody>
+      </ModalContent>
+      <ModalContent hidden={isGameFull}>
+        <ModalHeader>Press the button to join the {codenamesArea.name} </ModalHeader>
+        <ModalCloseButton />
+        <form
+          onSubmit={ev => {
+            ev.preventDefault();
+            joinCodenames();
+          }}>
+          <ModalFooter>
+            <Button colorScheme='blue' mr={3} onClick={joinCodenames}>
+              Join Game
+            </Button>
+          </ModalFooter>
+        </form>
       </ModalContent>
     </Modal>
   );
