@@ -1,8 +1,5 @@
 import {
   Button,
-  FormControl,
-  FormLabel,
-  Input,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -12,7 +9,6 @@ import {
   ModalOverlay,
   useToast,
 } from '@chakra-ui/react';
-import { isEmpty } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useCodenamesAreaController, useInteractable } from '../../../classes/TownController';
 import useTownController from '../../../hooks/useTownController';
@@ -27,6 +23,8 @@ export function CodenamesGameArea({
   const coveyTownController = useTownController();
   const codenamesAreaController = useCodenamesAreaController(codenamesArea.id);
   const [isGameFull, setIsGameFull] = useState<boolean>(false);
+  const [joinedGame, setJoinedGame] = useState<boolean>(false);
+  const [playersInGame, setPlayersInGame] = useState<number>(0);
   const [currentTurn, setCurrentTurn] = useState<string>('Spy1');
   const isSpymaster =
     coveyTownController.ourPlayer.id === codenamesAreaController.roles.teamOneSpymaster ||
@@ -109,14 +107,14 @@ export function CodenamesGameArea({
   function joinCodenames() {
     if (codenamesAreaController.occupants.length === 0) {
       createCodenames();
-      closeModal();
     } else {
       toast({
-        title: 'Game is currently full!',
-        status: 'error',
+        title: 'Joined the game!',
+        status: 'success',
       });
-      closeModal();
     }
+    setJoinedGame(true);
+    setPlayersInGame(playersInGame + 1);
   }
 
   return (
@@ -127,12 +125,22 @@ export function CodenamesGameArea({
         coveyTownController.unPause();
       }}>
       <ModalOverlay />
-      <ModalContent hidden={!isGameFull}>
+      <ModalContent hidden={!joinedGame || isGameFull}>
+        <ModalHeader>Joined the {codenamesArea.name} </ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>Waiting for {4 - playersInGame} more players...</ModalBody>
+      </ModalContent>
+      <ModalContent hidden={!joinedGame || !isGameFull}>
+        <ModalHeader>New Codenames Game</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>Gameboard</ModalBody>
+      </ModalContent>
+      <ModalContent hidden={!isGameFull || joinedGame}>
         <ModalHeader>Game is currently full!</ModalHeader>
         <ModalCloseButton />
         <ModalBody>Please try joining again once the game is finished.</ModalBody>
       </ModalContent>
-      <ModalContent hidden={isGameFull}>
+      <ModalContent hidden={isGameFull || joinedGame}>
         <ModalHeader>Press the button to join the {codenamesArea.name} </ModalHeader>
         <ModalCloseButton />
         <form
