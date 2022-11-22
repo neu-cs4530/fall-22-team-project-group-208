@@ -86,6 +86,7 @@ export interface CodenamesArea {
   };
   teamOneWordsRemaining: number;
   teamTwoWordsRemaining: number;
+  playerCount: number;
 }
 
 export interface ServerToClientEvents {

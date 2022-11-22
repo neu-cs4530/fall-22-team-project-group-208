@@ -565,6 +565,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     };
     teamOneWordsRemaining: number;
     teamTwoWordsRemaining: number;
+    playerCount: number;
   }) {
     await this._townsService.createCodenamesArea(this.townID, this.sessionToken, newArea);
   }
@@ -663,7 +664,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
    * @returns
    */
   public getCodenamesAreaController(codenamesArea: GameArea): CodenamesAreaController {
-    const existingController = this._codenamesAreas.find(
+    const existingController = this._codenamesAreasInternal.find(
       eachExistingArea => eachExistingArea.id === codenamesArea.name,
     );
     if (existingController) {
@@ -688,6 +689,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
    *
    */
   public emitCodenamesAreaUpdate(codenamesArea: CodenamesAreaController) {
+    console.log(codenamesArea.playerCount);
     this._socket.emit('interactableUpdate', codenamesArea.toCodenamesAreaModel());
   }
 

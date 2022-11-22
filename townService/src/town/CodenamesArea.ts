@@ -32,6 +32,9 @@ export default class CodenamesArea extends InteractableArea {
   /* The amount of words for Team 2 that have not been revealed. */
   private _teamTwoWordsRemaining: number;
 
+  /* The players currently in the game. */
+  private _playerCount: number;
+
   // TODO: id should be replaced with a CodenamesAreaModel in CoveyTownSocket.d.ts
   public constructor(id: string, coordinates: BoundingBox, townEmitter: TownEmitter) {
     super(id, coordinates, townEmitter);
@@ -45,6 +48,7 @@ export default class CodenamesArea extends InteractableArea {
     this._hint = { word: '', quantity: '0' };
     this._teamOneWordsRemaining = 8;
     this._teamTwoWordsRemaining = 8;
+    this._playerCount = 0;
   }
 
   /**
@@ -68,6 +72,7 @@ export default class CodenamesArea extends InteractableArea {
       if (this._roles.teamTwoOperative === undefined) {
         this._roles.teamTwoOperative = player.id;
       }
+      this._playerCount++;
     }
   }
 
@@ -120,6 +125,7 @@ export default class CodenamesArea extends InteractableArea {
       hint: { word: this._hint.word, quantity: this._hint.quantity },
       teamOneWordsRemaining: this._teamOneWordsRemaining,
       teamTwoWordsRemaining: this._teamTwoWordsRemaining,
+      playerCount: this._playerCount,
     };
   }
 
@@ -134,12 +140,14 @@ export default class CodenamesArea extends InteractableArea {
     hint,
     teamOneWordsRemaining,
     teamTwoWordsRemaining,
+    playerCount,
   }: CodenamesAreaModel) {
     this._turn = turn;
     this._roles = roles;
     this._hint = hint;
     this._teamOneWordsRemaining = teamOneWordsRemaining;
     this._teamTwoWordsRemaining = teamTwoWordsRemaining;
+    this._playerCount = playerCount;
   }
 
   /**

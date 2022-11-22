@@ -10,7 +10,10 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState } from 'react';
-import { useCodenamesAreaController, useInteractable } from '../../../classes/TownController';
+import TownController, {
+  useCodenamesAreaController,
+  useInteractable,
+} from '../../../classes/TownController';
 import useTownController from '../../../hooks/useTownController';
 import { CodenamesArea as CodenamesAreaModel } from '../../../types/CoveyTownSocket';
 import CodenamesAreaInteractable from './GameArea';
@@ -22,16 +25,17 @@ export function CodenamesGameArea({
 }): JSX.Element {
   const coveyTownController = useTownController();
   const codenamesAreaController = useCodenamesAreaController(codenamesArea.id);
+  const ourPlayer = coveyTownController.ourPlayer;
   const [isGameFull, setIsGameFull] = useState<boolean>(false);
   const [joinedGame, setJoinedGame] = useState<boolean>(false);
-  const [playersInGame, setPlayersInGame] = useState<number>(0);
+  const [playersInGame, setPlayersInGame] = useState<number>(codenamesAreaController.playerCount);
   const [currentTurn, setCurrentTurn] = useState<string>('Spy1');
   const isSpymaster =
-    coveyTownController.ourPlayer.id === codenamesAreaController.roles.teamOneSpymaster ||
-    coveyTownController.ourPlayer.id === codenamesAreaController.roles.teamTwoSpymaster;
+    ourPlayer.id === codenamesAreaController.roles.teamOneSpymaster ||
+    ourPlayer.id === codenamesAreaController.roles.teamTwoSpymaster;
   const isTeamOne =
-    coveyTownController.ourPlayer.id === codenamesAreaController.roles.teamOneSpymaster ||
-    coveyTownController.ourPlayer.id === codenamesAreaController.roles.teamOneOperative;
+    ourPlayer.id === codenamesAreaController.roles.teamOneSpymaster ||
+    ourPlayer.id === codenamesAreaController.roles.teamOneOperative;
   const isOpen = codenamesArea !== undefined;
 
   useEffect(() => {
@@ -41,12 +45,22 @@ export function CodenamesGameArea({
       coveyTownController.unPause();
     }
     // change to if boolean that all 4 players have been assigned roles returns true
-    if (codenamesAreaController.isActive) {
+    if (playersInGame === 4) {
       setIsGameFull(true);
     } else {
       setIsGameFull(false);
     }
-  }, [coveyTownController, codenamesArea, codenamesAreaController]);
+    codenamesAreaController.addListener('playerCountChange', setPlayersInGame);
+    return () => {
+      codenamesAreaController.removeListener('playerCountChange', setPlayersInGame);
+    };
+  }, [
+    coveyTownController,
+    codenamesArea,
+    codenamesAreaController,
+    setPlayersInGame,
+    playersInGame,
+  ]);
 
   /* closes screen when exit is pressed */
   const closeModal = useCallback(() => {
@@ -62,10 +76,10 @@ export function CodenamesGameArea({
     if (codenamesAreaController) {
       const codenamesToCreate: CodenamesAreaModel = {
         id: codenamesAreaController.id,
-        occupantsID: [],
+        occupantsID: [ourPlayer.id],
         turn: 'Spy1',
         roles: {
-          teamOneSpymaster: undefined,
+          teamOneSpymaster: ourPlayer.id,
           teamOneOperative: undefined,
           teamTwoSpymaster: undefined,
           teamTwoOperative: undefined,
@@ -76,6 +90,7 @@ export function CodenamesGameArea({
         },
         teamOneWordsRemaining: 8,
         teamTwoWordsRemaining: 8,
+        playerCount: 1,
       };
       try {
         await coveyTownController.createCodenamesArea(codenamesToCreate);
@@ -99,7 +114,7 @@ export function CodenamesGameArea({
         }
       }
     }
-  }, [codenamesAreaController, coveyTownController, toast]);
+  }, [codenamesAreaController, coveyTownController, ourPlayer.id, toast]);
 
   /**
    * add an else if checking if game is full
@@ -114,7 +129,9 @@ export function CodenamesGameArea({
       });
     }
     setJoinedGame(true);
-    setPlayersInGame(playersInGame + 1);
+    codenamesAreaController.joinPlayer(ourPlayer);
+    coveyTownController.emitCodenamesAreaUpdate(codenamesAreaController);
+    console.log(codenamesAreaController);
   }
 
   return (
@@ -122,6 +139,9 @@ export function CodenamesGameArea({
       isOpen={isOpen}
       onClose={() => {
         closeModal();
+        setJoinedGame(false);
+        codenamesAreaController.removePlayer(ourPlayer);
+        coveyTownController.emitCodenamesAreaUpdate(codenamesAreaController);
         coveyTownController.unPause();
       }}>
       <ModalOverlay />

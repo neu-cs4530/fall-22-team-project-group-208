@@ -35,6 +35,10 @@ export type CodenamesAreaEvents = {
    * An event that indicates the hint for the turn has changed.
    */
   hintChange: (newHint: { word: string; quantity: string }) => void;
+  /**
+   *
+   */
+  playerCountChange: (newCount: number) => void;
 };
 
 /**
@@ -44,6 +48,8 @@ export type CodenamesAreaEvents = {
  */
 export default class CodenamesAreaController extends (EventEmitter as new () => TypedEmitter<CodenamesAreaEvents>) {
   private _occupants: PlayerController[] = [];
+
+  private _playerCount: number;
 
   private _id: string;
 
@@ -95,6 +101,20 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     this._hint = { word: '', quantity: '0' };
     this._teamOneWordsRemaining = 8;
     this._teamTwoWordsRemaining = 8;
+    this._playerCount = 0;
+  }
+
+  public areRolesFilled(): boolean {
+    const teamOneSpymaster = this._roles.teamOneSpymaster;
+    const teamOneOperative = this._roles.teamOneOperative;
+    const teamTwoSpymaster = this._roles.teamTwoSpymaster;
+    const teamTwoOperative = this._roles.teamTwoOperative;
+    return (
+      teamOneSpymaster !== undefined &&
+      teamOneOperative !== undefined &&
+      teamTwoSpymaster !== undefined &&
+      teamTwoOperative !== undefined
+    );
   }
 
   /**
@@ -105,9 +125,9 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
    * @param player Player to add.
    */
   public joinPlayer(player: PlayerController): void {
-    if (this._occupants.find(occupant => occupant.id === player.id) === undefined) {
-      throw new Error('Player is not inside the area');
-    }
+    // if (this._occupants.find(occupant => occupant.id === player.id) === undefined) {
+    //   throw new Error('Player is not inside the area');
+    // }
     if (this._roles.teamOneSpymaster === undefined) {
       this._roles.teamOneSpymaster = player.id;
     } else if (this._roles.teamTwoSpymaster === undefined) {
@@ -119,6 +139,9 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     } else {
       throw new Error('All roles have been filled!');
     }
+    this.playerCount = this.playerCount + 1;
+    this._isActive = this.areRolesFilled();
+    this.emit('playerCountChange', this._playerCount);
   }
 
   /**
@@ -127,18 +150,30 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
    * @param player Player to remove.
    */
   public removePlayer(player: PlayerController): void {
-    throw new Error('Not implemeneted yet');
-    // if (this._teamOneSpymaster !== undefined && this._teamOneSpymaster.id === player.id) {
-    //   this.teamOneSpymaster = undefined;
-    // } else if (this._teamOneOperative !== undefined && this._teamOneOperative.id === player.id) {
-    //   this.teamOneOperative = undefined;
-    // } else if (this._teamTwoSpymaster !== undefined && this._teamTwoSpymaster.id === player.id) {
-    //   this.teamTwoSpymaster = undefined;
-    // } else if (this._teamTwoOperative !== undefined && this._teamTwoOperative.id === player.id) {
-    //   this.teamTwoOperative = undefined;
-    // } else {
-    //   throw new Error('This player is not assigned to any roles!');
-    // }
+    if (this._roles.teamOneSpymaster === player.id) {
+      this._roles.teamOneSpymaster = undefined;
+      this.playerCount = this.playerCount - 1;
+      this.emit('playerCountChange', this._playerCount);
+      this.emit('roleChange', this._roles);
+    } else if (this._roles.teamOneOperative === player.id) {
+      this._roles.teamOneOperative = undefined;
+      this.playerCount = this.playerCount - 1;
+      this.emit('playerCountChange', this._playerCount);
+      this.emit('roleChange', this._roles);
+    } else if (this._roles.teamTwoSpymaster === player.id) {
+      this._roles.teamTwoSpymaster = undefined;
+      this.playerCount = this.playerCount - 1;
+      this.emit('playerCountChange', this._playerCount);
+      this.emit('roleChange', this._roles);
+    } else if (this._roles.teamTwoOperative === player.id) {
+      this._roles.teamTwoOperative = undefined;
+      this.playerCount = this.playerCount - 1;
+      this.emit('playerCountChange', this._playerCount);
+      this.emit('roleChange', this._roles);
+    } else {
+      throw new Error('This player is not assigned to any roles!');
+    }
+    this._isActive = this.areRolesFilled();
   }
 
   /**
@@ -257,6 +292,17 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     }
   }
 
+  get playerCount() {
+    return this._playerCount;
+  }
+
+  public set playerCount(newCount: number) {
+    if (this._playerCount !== newCount) {
+      this._playerCount = newCount;
+      this.emit('playerCountChange', newCount);
+    }
+  }
+
   /**
    * A codenames area is empty if there are no occupants in it.
    */
@@ -277,6 +323,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
       hint: this.hint,
       teamOneWordsRemaining: this.teamOneWordsRemaining,
       teamTwoWordsRemaining: this.teamTwoWordsRemaining,
+      playerCount: this.playerCount,
     };
   }
 
@@ -304,6 +351,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     this.turn = updatedModel.turn;
     this.teamOneWordsRemaining = updatedModel.teamOneWordsRemaining;
     this.teamTwoWordsRemaining = updatedModel.teamTwoWordsRemaining;
+    this.playerCount = updatedModel.playerCount;
   }
 }
 
