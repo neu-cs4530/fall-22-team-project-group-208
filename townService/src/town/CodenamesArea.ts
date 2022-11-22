@@ -21,7 +21,7 @@ export default class CodenamesArea extends InteractableArea {
   };
 
   /* The board(To be implemented after Card object type created) */
-  // private board : Card[];
+  // private _board : Card[];
 
   /* The currently active hint word issued by the spymaster. */
   private _hint: { word: string; quantity: string };
@@ -140,6 +140,8 @@ export default class CodenamesArea extends InteractableArea {
     this._hint = hint;
     this._teamOneWordsRemaining = teamOneWordsRemaining;
     this._teamTwoWordsRemaining = teamTwoWordsRemaining;
+    // TODO: We may want to send the board to the frontend CodenamesAreaController,
+    //       but it is not a field in  the CodenamesAreaModel
   }
 
   /**

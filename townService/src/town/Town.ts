@@ -142,11 +142,14 @@ export default class Town {
     });
 
     // Set up a listener to process updates to interactables.
-    // Currently only knows how to process updates for ViewingArea's, and
+    // Currently only knows how to process updates for ViewingArea's and CodenameArea's, and
     // ignores any other updates for any other kind of interactable.
     // For ViewingArea's: dispatches an updateModel call to the viewingArea that
     // corresponds to the interactable being updated. Does not throw an error if
     // the specified viewing area does not exist.
+    // For CodenameArea's: dispatches an updateModel call to the codenamesArea that
+    // corresponds to the interactable being updated. Does not throw an error if
+    // the specificed codenames area does not exist.
     socket.on('interactableUpdate', (update: Interactable) => {
       if (isViewingArea(update)) {
         newPlayer.townEmitter.emit('interactableUpdate', update);
@@ -305,7 +308,7 @@ export default class Town {
     if (!area) {
       return false;
     }
-    area.updateModel(codenamesArea);
+    // area.updateModel(codenamesArea);
     area.addPlayersWithinBounds(this._players);
     this._broadcastEmitter.emit('interactableUpdate', area.toModel());
     return true;
