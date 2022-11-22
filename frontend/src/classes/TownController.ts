@@ -433,7 +433,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
      * events (@see ViewingAreaController and @see ConversationAreaController)
      */
     this._socket.on('interactableUpdate', interactable => {
-      console.log(interactable);
       if (isConversationArea(interactable)) {
         const updatedConversationArea = this.conversationAreas.find(c => c.id === interactable.id);
         if (updatedConversationArea) {
@@ -453,9 +452,11 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       } else if (isCodenamesArea(interactable)) {
         const updatedCodenamesArea = this.codenamesAreas.find(c => c.id === interactable.id);
         if (updatedCodenamesArea) {
+          // TODO: Feel like we want to fire a codenamesAreasChanged event when the game state changes
+          //       Not sure what this event does though...
           const emptyNow = updatedCodenamesArea.occupants.length === 0;
           updatedCodenamesArea.occupants = this._playersByIDs(interactable.occupantsID);
-          updatedCodenamesArea.updateFrom(interactable);
+          updatedCodenamesArea?.updateFrom(interactable);
           const emptyAfterChange = updatedCodenamesArea.occupants.length === 0;
           if (emptyNow !== emptyAfterChange) {
             this.emit('codenamesAreasChanged', this._codenamesAreasInternal);
@@ -820,8 +821,8 @@ export function useActiveConversationAreas(): ConversationAreaController[] {
 }
 
 /**
- * A react hook to retrieve the active conversation areas. This hook will re-render any components
- * that use it when the set of conversation areas changes. It does *not* re-render its dependent components
+ * A react hook to retrieve the active codenames areas. This hook will re-render any components
+ * that use it when the set of codenames areas changes. It does *not* re-render its dependent components
  * when the state of one of those areas changes - @see useCodednamesAreaOccupants
  *
  * This hook relies on the TownControllerContext.
