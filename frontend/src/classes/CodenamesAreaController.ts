@@ -53,7 +53,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   // /* Whether or not the game is currently active in play,
   //  * and game can only be active if all roles are filled.
   //  */
-  // private _isActive: boolean;
+  private _isActive: boolean;
 
   // /* The current player whose turn is active.
   //  * Default value is represented by null when game has not started yet
@@ -61,12 +61,12 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   // private _turn: string;
 
   // /* The spymaster for team one. */
-  // private _roles: {
-  //   teamOneSpymaster: string | undefined;
-  //   teamOneOperative: string | undefined;
-  //   teamTwoSpymaster: string | undefined;
-  //   teamTwoOperative: string | undefined;
-  // };
+  private _roles: {
+    teamOneSpymaster: string | undefined;
+    teamOneOperative: string | undefined;
+    teamTwoSpymaster: string | undefined;
+    teamTwoOperative: string | undefined;
+  };
 
   // /* The game board */
   // // private board: GameCard[][];
@@ -87,15 +87,15 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   constructor(codenamesAreaModel: CodenamesAreaModel) {
     super();
     this._model = codenamesAreaModel;
+    this._isActive = false;
     // this._id = id;
-    // this._isActive = false;
     // this._turn = 'Spy1';
-    // this._roles = {
-    //   teamOneSpymaster: undefined,
-    //   teamOneOperative: undefined,
-    //   teamTwoSpymaster: undefined,
-    //   teamTwoOperative: undefined,
-    // };
+    this._roles = {
+      teamOneSpymaster: undefined,
+      teamOneOperative: undefined,
+      teamTwoSpymaster: undefined,
+      teamTwoOperative: undefined,
+    };
     // this._hint = { word: '', quantity: '0' };
     // this._teamOneWordsRemaining = 8;
     // this._teamTwoWordsRemaining = 8;
@@ -111,7 +111,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   }
 
   /**
-   * The current model representing this Codenames area. Changing any field in the model 
+   * The current model representing this Codenames area. Changing any field in the model
    * will emit a respective event.
    */
   set model(newModel: CodenamesAreaModel) {
@@ -262,12 +262,9 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   //   throw new Error('Not yet implemented');
   // }
 
-  // /**
-  //  *
-  //  */
-  // get roles() {
-  //   return this._roles;
-  // }
+  get roles() {
+    return this._roles;
+  }
 
   // public set roles(newRoles: {
   //   teamOneSpymaster: string | undefined;
@@ -286,9 +283,9 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   //   }
   // }
 
-  // get isActive() {
-  //   return this._isActive;
-  // }
+  get isActive() {
+    return this._isActive;
+  }
 
   // /**
   //  * The current turn

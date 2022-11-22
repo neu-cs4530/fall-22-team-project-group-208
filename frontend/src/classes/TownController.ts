@@ -663,18 +663,19 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
    * @param codenamesArea
    * @returns
    */
-  public getCodenamesAreaController(codenamesArea: GameArea): CodenamesAreaController {
-    const existingController = this._codenamesAreas.find(
-      eachExistingArea => eachExistingArea.id === codenamesArea.name,
-    );
-    if (existingController) {
-      return existingController;
-    } else {
-      const newController = new CodenamesAreaController(codenamesArea.name);
-      this._codenamesAreas.push(newController);
-      return newController;
-    }
-  }
+  // TODO: NOT SURE WHAT THIS METHOD DOES??? DO WE NEED IT???
+  // public getCodenamesAreaController(codenamesArea: GameArea): CodenamesAreaController {
+  //   const existingController = this._codenamesAreas.find(
+  //     eachExistingArea => eachExistingArea.id === codenamesArea.name,
+  //   );
+  //   if (existingController) {
+  //     return existingController;
+  //   } else {
+  //     const newController = new CodenamesAreaController(codenamesArea);
+  //     this._codenamesAreas.push(newController);
+  //     return newController;
+  //   }
+  // }
 
   /**
    * Emit a viewing area update to the townService
