@@ -3,7 +3,7 @@ import _, { TruncateOptions, update } from 'lodash';
 import { useEffect, useState } from 'react';
 import TypedEmitter from 'typed-emitter';
 import PlayerController from './PlayerController';
-import { CodenamesArea as CodenamesAreaModel, Player } from '../types/CoveyTownSocket';
+import { CodenamesArea as CodenamesAreaModel, GameCard } from '../types/CoveyTownSocket';
 
 /**
  * The events that the CodenamesAreaController emits to subscribers. These events
@@ -30,7 +30,7 @@ export type CodenamesAreaEvents = {
   /**
    * An event that indicates the cards on the gameboard have changed. This refers to cases where cards have been guessed.
    */
-  // cardChange: (newCards: GameCard[][]) => void;
+  cardChange: (newCards: GameCard[]) => void;
   /**
    * An event that indicates the hint for the turn has changed.
    */
@@ -72,7 +72,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   };
 
   /* The game board */
-  // private board: GameCard[][];
+  private _board: GameCard[];
 
   /* The currently active hint word issued by the spymaster. */
   private _hint: { word: string; quantity: string };
@@ -102,6 +102,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     this._teamOneWordsRemaining = 8;
     this._teamTwoWordsRemaining = 8;
     this._playerCount = 0;
+    this._board = []; // make this GameCard.intializeCards() ??
   }
 
   public areRolesFilled(): boolean {
@@ -182,8 +183,27 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
    * Only an operative whose turn is the current turn can make a guess.
    * @param guesses The coordinates of the GameCard that is being guessed.
    */
-  public makeGuess(guesses: number) {
-    throw new Error('Not yet implemented');
+  public makeGuess(guess: string): void {
+    const wordBoard = this._board.map(card => card.name);
+    const guessCondition = (word: string) => word === guess;
+    const guessIndex: number = wordBoard.findIndex(guessCondition);
+    const guessCard: GameCard = this._board[guessIndex];
+
+    if (guessIndex === -1) {
+      throw new Error('Word does not exist on the board');
+    } else if (this._turn !== 'Op1' && this._turn !== 'Op2') {
+      throw new Error('It is not the proper turn to make a guess');
+    } else if (this._turn === 'Op1' && guessCard.team === 'One') {
+      guessCard.guessed = true;
+      this._teamOneWordsRemaining -= 1;
+    } else if (this._turn === 'Op2' && guessCard.team === 'Two') {
+      guessCard.guessed = true;
+      this._teamTwoWordsRemaining -= 1;
+    } else if (guessCard.team === 'Bomb') {
+      // end the game
+    } else {
+      // change the turn
+    }
   }
 
   /**
@@ -303,6 +323,17 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     }
   }
 
+  get board() {
+    return this._board;
+  }
+
+  public set board(newBoard: GameCard[]) {
+    if (this._board !== newBoard) {
+      this._board = newBoard;
+      this.emit('cardChange', newBoard);
+    }
+  }
+
   /**
    * A codenames area is empty if there are no occupants in it.
    */
@@ -324,6 +355,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
       teamOneWordsRemaining: this.teamOneWordsRemaining,
       teamTwoWordsRemaining: this.teamTwoWordsRemaining,
       playerCount: this.playerCount,
+      board: this._board,
     };
   }
 
@@ -352,6 +384,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     this.teamOneWordsRemaining = updatedModel.teamOneWordsRemaining;
     this.teamTwoWordsRemaining = updatedModel.teamTwoWordsRemaining;
     this.playerCount = updatedModel.playerCount;
+    this.board = updatedModel.board;
   }
 }
 

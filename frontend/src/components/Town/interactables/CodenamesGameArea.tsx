@@ -17,6 +17,7 @@ import TownController, {
 import useTownController from '../../../hooks/useTownController';
 import { CodenamesArea as CodenamesAreaModel } from '../../../types/CoveyTownSocket';
 import CodenamesAreaInteractable from './GameArea';
+import { GameCard } from '../../../GameCard';
 
 export function CodenamesGameArea({
   codenamesArea,
@@ -91,6 +92,7 @@ export function CodenamesGameArea({
         teamOneWordsRemaining: 8,
         teamTwoWordsRemaining: 8,
         playerCount: 1,
+        board: GameCard.initializeCards(),
       };
       try {
         await coveyTownController.createCodenamesArea(codenamesToCreate);

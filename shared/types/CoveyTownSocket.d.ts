@@ -87,6 +87,14 @@ export interface CodenamesArea {
   teamOneWordsRemaining: number;
   teamTwoWordsRemaining: number;
   playerCount: number;
+  board: GameCard[];
+}
+
+export interface GameCard {
+  name: string;
+  team: string;
+  guessed: boolean;
+  color: string;
 }
 
 export interface ServerToClientEvents {

@@ -16,6 +16,7 @@ import {
   PlayerLocation,
   TownSettingsUpdate,
   ViewingArea as ViewingAreaModel,
+  GameCard,
 } from '../types/CoveyTownSocket';
 import { isCodenamesArea, isConversationArea, isViewingArea } from '../types/TypeUtils';
 import CodenamesAreaController from './CodenamesAreaController';
@@ -566,6 +567,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     teamOneWordsRemaining: number;
     teamTwoWordsRemaining: number;
     playerCount: number;
+    board: GameCard[];
   }) {
     await this._townsService.createCodenamesArea(this.townID, this.sessionToken, newArea);
   }
