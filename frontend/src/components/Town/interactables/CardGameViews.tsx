@@ -3,40 +3,55 @@ import {
   Button,
   Heading,
   Input,
+  ModalContent,
   Wrap,
   WrapItem
 } from '@chakra-ui/react';
-import { GameCard } from '@material-ui/core';
 import { useState } from 'react';
+import { GameCard } from '../../GameCard';
 import './App.css';
 
 function SpyMasterCardView({ card }: { card: GameCard }) {
   return (
-    <Box boxSize='sm' borderWidth='1px' borderRadius='lg' overflow='hidden' color={card._team}>
-      <Heading as='h4'>
-        {card._name}
-      </Heading>
-    </Box>
+    <><ModalContent hidden={card._guessed}>
+      <Box boxSize='sm' borderWidth='1px' borderRadius='lg' overflow='hidden' borderColor="gray" color={card._color}>
+        <Heading as='h4'>
+          {card._name}
+        </Heading>
+      </Box>
+    </ModalContent><ModalContent hidden={!card._guessed}>
+        <Box boxSize='sm' borderWidth='1px' borderRadius='lg' overflow='hidden' color={card._color} borderColor={card._color}>
+          <Heading as='h4'>
+            {card._name}
+          </Heading>
+        </Box>
+      </ModalContent></>
   );
 }
 
 function OperativeCardView({ card }: { card: GameCard }) {
   return (
-    <Button boxSize='sm' borderWidth='1px' borderRadius='lg' overflow='hidden' color="gray" name={card._name}>
-      <Heading as='h4'>
-        {card._name}
-      </Heading>
-      onClick={async () => {
-        card._name.style.color = card._team
-        //await validateButton(player, card)
-        // update turn
-      }}
-    </Button>
+    <><ModalContent hidden={card._guessed}>
+      <Button boxSize='sm' borderWidth='1px' borderRadius='lg' overflow='hidden' color="gray" name={card._name}>
+        <Heading as='h4'>
+          {card._name}
+        </Heading>
+        onClick={async () => {
+          // Call makeGuess with card name
+        } }
+      </Button>
+    </ModalContent><ModalContent hidden={!card._guessed}>
+        <Button boxSize='sm' borderWidth='1px' borderRadius='lg' overflow='hidden' color={card._color} name={card._name} disabled={card._guessed}>
+          <Heading as='h4'>
+            {card._name}
+          </Heading>
+        </Button>
+      </ModalContent></>
   );
 }
 
 function SpyMasterView() {
-  const cards = initializeCards()
+  const cards: GameCard[] = codenamesArea._board;
   const [hint, setHint] = useState<string>('');
   const [hintAmount, setHintAmount] = useState<string>('0');
   return (
@@ -69,7 +84,7 @@ function SpyMasterView() {
           // Whatever the function in the controller is
           await updateHint(hint, hintAmount);
           setHint('');
-          setHintAmount(0);
+          setHintAmount('0');
           // update turn
         }}>
         Submit Hint
@@ -78,16 +93,16 @@ function SpyMasterView() {
   );
 
   function OperativeView() {
-    const cards = initializeCards()
+    const cards: GameCard[] = codenamesArea._board;
     return (
       <div className='App'>
         <Wrap>
-            {cards.map(eachCard: GameCard => (
-              <WrapItem key={eachCard._name}>
-                <OperativeCardView card={eachCard} />
-              </WrapItem>
-            ))}
-          </Wrap>
+          {cards.map(eachCard: GameCard => (
+            <WrapItem key={eachCard._name}>
+              <OperativeCardView card={eachCard} />
+            </WrapItem>
+          ))}
+        </Wrap>
       </div>
     );
   }
