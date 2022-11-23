@@ -177,13 +177,16 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   }
 
   /**
-   * Submits a guess for specific GameCards, and updates the game board based on the guesses.
-   * Guesses must be unrevealed and within the bounds of the game board.
-   * Only an operative whose turn is the current turn can make a guess.
-   * @param guesses The coordinates of the GameCard that is being guessed.
+   * Submits a guess for specified tiles. Also updates game state based on the guesses.(Will be more specific once we discuss more)
+   *
+   * Guesses must be unrevealed and within bounds of the board.
+   *
+   * (TBD making sure that only an operative whose turn is the current turn can make a guess)
+   *
+   * @param guessIndex The coordinates within the grid that is being guessed.
    */
-  public makeGuess(guesses: number) {
-    throw new Error('Not yet implemented');
+  public makeGuess(guessIndex: number): void {
+    // cannot implement until we have access to the game board
   }
 
   /**

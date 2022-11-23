@@ -6,6 +6,7 @@ import {
   CodenamesArea as CodenamesAreaModel,
   Player as PlayerModel,
 } from '../types/CoveyTownSocket';
+import { GameCard } from './GameCard';
 import InteractableArea from './InteractableArea';
 
 export default class CodenamesArea extends InteractableArea {
@@ -21,7 +22,7 @@ export default class CodenamesArea extends InteractableArea {
   };
 
   /* The board(To be implemented after Card object type created) */
-  // private board : Card[];
+  private _board: GameCard[];
 
   /* The currently active hint word issued by the spymaster. */
   private _hint: { word: string; quantity: string };
@@ -38,6 +39,7 @@ export default class CodenamesArea extends InteractableArea {
   // TODO: id should be replaced with a CodenamesAreaModel in CoveyTownSocket.d.ts
   public constructor(id: string, coordinates: BoundingBox, townEmitter: TownEmitter) {
     super(id, coordinates, townEmitter);
+    this._board = GameCard.initializeCards();
     this._turn = 'Spy1';
     this._roles = {
       teamOneSpymaster: undefined,
@@ -87,7 +89,21 @@ export default class CodenamesArea extends InteractableArea {
    */
   public removePlayer(player: Player): void {
     super.remove(player);
-    // remove player from their role
+    if (this._roles.teamOneSpymaster === player.id) {
+      this._roles.teamOneSpymaster = undefined;
+      this._playerCount -= 1;
+    } else if (this._roles.teamOneOperative === player.id) {
+      this._roles.teamOneOperative = undefined;
+      this._playerCount -= 1;
+    } else if (this._roles.teamTwoSpymaster === player.id) {
+      this._roles.teamTwoSpymaster = undefined;
+      this._playerCount -= 1;
+    } else if (this._roles.teamTwoOperative === player.id) {
+      this._roles.teamTwoOperative = undefined;
+      this._playerCount -= 1;
+    } else {
+      throw new Error('This player is not assigned to any roles!');
+    }
   }
 
   /**
@@ -109,8 +125,25 @@ export default class CodenamesArea extends InteractableArea {
    *
    * (TBD making sure that only an operative whose turn is the current turn can make a guess)
    *
-   * @param guesses The coordinates within the grid that is being guessed.
+   * @param guessIndex The coordinates within the grid that is being guessed.
    */
+  public makeGuess(guessIndex: number): void {
+    if (guessIndex > 24 || guessIndex < 0) {
+      throw new Error('Index is out of bounds');
+    } else if (this._turn !== 'Op1' && this._turn !== 'Op2') {
+      throw new Error('It is not the proper turn to make a guess');
+    } else if (this._turn === 'Op1' && this._board[guessIndex].isTeamOne()) {
+      this._board[guessIndex]._guessed = true;
+      this._teamOneWordsRemaining -= 1;
+    } else if (this._turn === 'Op2' && this._board[guessIndex].isTeamTwo()) {
+      this._board[guessIndex]._guessed = true;
+      this._teamTwoWordsRemaining -= 1;
+    } else if (this._board[guessIndex].isBomb()) {
+      // end the game
+    } else {
+      // change the turn
+    }
+  }
 
   /**
    * Convert this ConversationArea instance to a simple ConversationAreaModel suitable for
