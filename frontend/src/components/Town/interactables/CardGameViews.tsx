@@ -60,28 +60,24 @@ export default function CardGameViews({
   function SpyMasterCardView({ card }: { card: GameCard }) {
     return (
       <>
-        <ModalContent hidden={card.guessed}>
-          <Box
-            boxSize='sm'
-            borderWidth='1px'
-            borderRadius='lg'
-            overflow='hidden'
-            borderColor='gray'
-            color={card.color}>
-            <Heading as='h4'>{card.name}</Heading>
-          </Box>
-        </ModalContent>
-        <ModalContent hidden={!card.guessed}>
-          <Box
-            boxSize='sm'
-            borderWidth='1px'
-            borderRadius='lg'
-            overflow='hidden'
-            color={card.color}
-            borderColor={card.color}>
-            <Heading as='h4'>{card.name}</Heading>
-          </Box>
-        </ModalContent>
+        <Box
+          hidden={card.guessed}
+          borderWidth='1px'
+          borderRadius='lg'
+          overflow='hidden'
+          borderColor='gray'
+          color={card.color}>
+          <Heading as='h4'>{card.name}</Heading>
+        </Box>
+        <Box
+          hidden={!card.guessed}
+          borderWidth='1px'
+          borderRadius='lg'
+          overflow='hidden'
+          color={card.color}
+          borderColor={card.color}>
+          <Heading as='h4'>{card.name}</Heading>
+        </Box>
       </>
     );
   }
@@ -89,37 +85,33 @@ export default function CardGameViews({
   function OperativeCardView({ card }: { card: GameCard }) {
     return (
       <>
-        <ModalContent hidden={card.guessed}>
-          <Button
-            boxSize='sm'
-            borderWidth='1px'
-            borderRadius='lg'
-            overflow='hidden'
-            color='gray'
-            name={card.name}
-            // disable if isTeamOne is true and teamOneSpyorOp === ourPlayer id is false
-            // or if isTeamOne is false and teamTwoSpyorOp === ourPlayer id is false
-            disabled={true}>
-            <Heading as='h4'>{card.name}</Heading>
-            onClick=
-            {async () => {
-              // Call makeGuess with card name
-              // emit with town controller
-            }}
-          </Button>
-        </ModalContent>
-        <ModalContent hidden={!card.guessed}>
-          <Button
-            boxSize='sm'
-            borderWidth='1px'
-            borderRadius='lg'
-            overflow='hidden'
-            color={card.color}
-            name={card.name}
-            disabled={card.guessed}>
-            <Heading as='h4'>{card.name}</Heading>
-          </Button>
-        </ModalContent>
+        <Button
+          hidden={card.guessed}
+          borderWidth='1px'
+          borderRadius='lg'
+          overflow='hidden'
+          color='gray'
+          name={card.name}
+          // disable if isTeamOne is true and teamOneSpyorOp === ourPlayer id is false
+          // or if isTeamOne is false and teamTwoSpyorOp === ourPlayer id is false
+          disabled={false}
+          onClick={async () => {
+            // Call makeGuess with card name
+            // emit with town controller
+            console.log('clicked card');
+          }}>
+          <Heading as='h4'>{card.name}</Heading>
+        </Button>
+        <Button
+          hidden={!card.guessed}
+          borderWidth='1px'
+          borderRadius='lg'
+          overflow='hidden'
+          color={card.color}
+          name={card.name}
+          disabled={card.guessed}>
+          <Heading as='h4'>{card.name}</Heading>
+        </Button>
       </>
     );
   }
@@ -137,36 +129,39 @@ export default function CardGameViews({
             </WrapItem>
           ))}
         </Wrap>
-        <Input
-          value={hint}
-          onChange={event => setHint(event.target.value)}
-          name='Hint'
-          placeholder='Hint'
-        />
-        <Input
-          value={hintAmount}
-          type='number'
-          onChange={event => setHintAmount(event.target.value)}
-          name='HintAmount'
-          placeholder='Amount'
-        />
-        <Button
-          colorScheme='blue'
-          type='submit'
-          // Need to figure out how to disable depending on the turn
-          // disable if isTeamOne is true and teamOneSpyorOp === ourPlayer id is false
-          // or if isTeamOne is false and teamTwoSpyorOp === ourPlayer id is false
-          disabled={true}
-          onClick={async () => {
-            controller.hint = { word: hint, quantity: hintAmount };
-            // update turn
-            // controller.updateTurn(currentTurn);
-            townController.emitCodenamesAreaUpdate(controller);
-            setHint('');
-            setHintAmount('0');
-          }}>
-          Submit Hint
-        </Button>
+        <Wrap>
+          <Input
+            value={hint}
+            onChange={event => setHint(event.target.value)}
+            name='Hint'
+            placeholder='Hint'
+          />
+          <Input
+            value={hintAmount}
+            type='number'
+            onChange={event => setHintAmount(event.target.value)}
+            name='HintAmount'
+            placeholder='Amount'
+          />
+          <Button
+            colorScheme='blue'
+            type='submit'
+            // Need to figure out how to disable depending on the turn
+            // disable if isTeamOne is true and teamOneSpyorOp === ourPlayer id is false
+            // or if isTeamOne is false and teamTwoSpyorOp === ourPlayer id is false
+            disabled={false}
+            onClick={async () => {
+              controller.hint = { word: hint, quantity: hintAmount };
+              // update turn
+              // controller.updateTurn(currentTurn);
+              townController.emitCodenamesAreaUpdate(controller);
+              setHint('');
+              setHintAmount('0');
+              console.log('set hint');
+            }}>
+            Submit Hint
+          </Button>
+        </Wrap>
       </div>
     );
   }
@@ -187,8 +182,10 @@ export default function CardGameViews({
   }
   return (
     <>
-      <OperativeView hidden={isSpymaster} />
-      <SpyMasterView hidden={!isSpymaster} />
+      <ModalBody>
+        <OperativeView hidden={isSpymaster} />
+        <SpyMasterView hidden={!isSpymaster} />
+      </ModalBody>
     </>
     // add endgame screen
   );

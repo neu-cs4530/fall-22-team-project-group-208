@@ -147,6 +147,7 @@ export function CodenamesGameArea({
         <ModalBody>Waiting for {4 - playersInGame} more players...</ModalBody>
       </ModalContent>
       <ModalContent hidden={!joinedGame || !isGameFull}>
+        <ModalHeader>Codenames Game in Session... </ModalHeader>
         <ModalCloseButton />
         <CardGameViews
           controller={codenamesAreaController}
