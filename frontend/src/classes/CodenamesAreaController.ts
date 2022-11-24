@@ -1,5 +1,5 @@
 import EventEmitter from 'events';
-import _, { TruncateOptions, update } from 'lodash';
+import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import TypedEmitter from 'typed-emitter';
 import PlayerController from './PlayerController';
@@ -126,9 +126,6 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
    * @param player Player to add.
    */
   public joinPlayer(player: PlayerController): void {
-    // if (this._occupants.find(occupant => occupant.id === player.id) === undefined) {
-    //   throw new Error('Player is not inside the area');
-    // }
     if (this._roles.teamOneSpymaster === undefined) {
       this._roles.teamOneSpymaster = player.id;
     } else if (this._roles.teamTwoSpymaster === undefined) {
@@ -143,6 +140,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     this.playerCount = this.playerCount + 1;
     this._isActive = this.areRolesFilled();
     this.emit('playerCountChange', this._playerCount);
+    this.emit('roleChange', this._roles);
   }
 
   /**
