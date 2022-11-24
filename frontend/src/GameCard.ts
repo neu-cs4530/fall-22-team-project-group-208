@@ -22,6 +22,7 @@ export class GameCard {
   }
 
   /** Function to determine if a card is assigned to the Blue Team */
+<<<<<<< Updated upstream:frontend/src/GameCard.ts
   public isTeamOne(): boolean {
     return this._team === 'One';
   }
@@ -29,16 +30,33 @@ export class GameCard {
   /** Function to determine if a card is assigned to the Red Team */
   public isTeamTwo(): boolean {
     return this._team === 'Two';
+=======
+  public isBlue(): boolean {
+    return this._team === Team.Blue;
+  }
+
+  /** Function to determine if a card is assigned to the Red Team */
+  public isRed(): boolean {
+    return this._team === Team.Red;
+>>>>>>> Stashed changes:townService/src/town/GameCard.ts
   }
 
   /** Function to determine if a card is assigned as the Bomb */
   public isBomb(): boolean {
+<<<<<<< Updated upstream:frontend/src/GameCard.ts
     return this._team === 'Bomb';
+=======
+    return this._team === Team.Bomb;
+>>>>>>> Stashed changes:townService/src/town/GameCard.ts
   }
 
   /** Function to determine if a card is assigned to neutral */
   public isNeutral(): boolean {
+<<<<<<< Updated upstream:frontend/src/GameCard.ts
     return this._team === 'Neutral';
+=======
+    return this._team === Team.Neutral;
+>>>>>>> Stashed changes:townService/src/town/GameCard.ts
   }
 
   /**
