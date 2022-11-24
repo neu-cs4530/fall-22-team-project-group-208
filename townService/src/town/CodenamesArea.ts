@@ -7,7 +7,7 @@ import {
 } from '../types/CoveyTownSocket';
 import InteractableArea from './InteractableArea';
 
-const CARDS_ON_BOARD_COUNT = 25;
+// const CARDS_ON_BOARD_COUNT = 25;
 const CARDS_FOR_BLUE_TEAM = 8;
 const CARDS_FOR_RED_TEAM = 8;
 
