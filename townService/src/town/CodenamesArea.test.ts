@@ -32,9 +32,11 @@ describe('CodenamesArea', () => {
 
       const lastEmittedUpdate = getLastEmittedEvent(townEmitter, 'interactableUpdate');
       expect(lastEmittedUpdate).toEqual({
+        board: [],
         id,
         turn: 'Spy1',
         occupantsID: [newPlayer.id],
+        playerCount: 0,
         roles,
         hint: { word: '', quantity: '0' },
         teamOneWordsRemaining: 8,
@@ -58,9 +60,11 @@ describe('CodenamesArea', () => {
       expect(testArea.occupantsByID).toEqual([extraPlayer.id]);
       const lastEmittedUpdate = getLastEmittedEvent(townEmitter, 'interactableUpdate');
       expect(lastEmittedUpdate).toEqual({
+        board: [],
         id,
         turn: 'Spy1',
         occupantsID: [extraPlayer.id],
+        playerCount: 0,
         roles,
         hint: { word: '', quantity: '0' },
         teamOneWordsRemaining: 8,
@@ -71,10 +75,12 @@ describe('CodenamesArea', () => {
   test('toModel sets the properties needed for a simple CodenamesAreaModel', () => {
     const model = testArea.toModel();
     expect(model).toEqual({
+      board: [],
       id,
       turn: 'Spy1',
       occupantsID: [newPlayer.id],
       roles,
+      playerCount: 0,
       hint: { word: '', quantity: '0' },
       teamOneWordsRemaining: 8,
       teamTwoWordsRemaining: 8,
