@@ -5,24 +5,30 @@ import {
   FormLabel,
   Heading,
   Input,
+  Modal,
   ModalBody,
+  ModalCloseButton,
   ModalContent,
   ModalFooter,
+  ModalHeader,
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import CodenamesAreaController from '../../../classes/CodenamesAreaController';
 import PlayerController from '../../../classes/PlayerController';
 import TownController from '../../../classes/TownController';
+import CodenamesAreaInteractable from './GameArea';
 import { GameCard } from '../../../types/CoveyTownSocket';
 
 export default function CardGameViews({
   controller,
+  codenamesArea,
   ourPlayer,
   townController,
 }: {
   controller: CodenamesAreaController;
+  codenamesArea: CodenamesAreaInteractable;
   ourPlayer: PlayerController;
   townController: TownController;
 }): JSX.Element {
@@ -43,6 +49,7 @@ export default function CardGameViews({
   const isTeamOne =
     ourPlayer.id === currentRoles.teamOneSpymaster ||
     ourPlayer.id === currentRoles.teamOneOperative;
+  const isOpen = controller !== undefined;
 
   useEffect(() => {
     controller.addListener('turnChange', setCurrentTurn);
@@ -56,6 +63,14 @@ export default function CardGameViews({
       controller.removeListener('hintChange', setCurrentHint);
     };
   }, [controller]);
+
+  /* closes screen when exit is pressed */
+  const closeModal = useCallback(() => {
+    if (controller) {
+      townController.interactEnd(codenamesArea);
+      townController.unPause();
+    }
+  }, [codenamesArea, townController]);
 
   function SpyMasterCardView({ card }: { card: GameCard }) {
     return (
@@ -181,12 +196,20 @@ export default function CardGameViews({
     );
   }
   return (
-    <>
-      <ModalBody>
+    <Modal
+      isOpen={isOpen}
+      onClose={() => {
+        controller.removePlayer(ourPlayer);
+        townController.emitCodenamesAreaUpdate(controller);
+        closeModal();
+      }}>
+      <ModalHeader>Codenames Game in Session... </ModalHeader>
+      <ModalContent>
+        <ModalCloseButton />
         <OperativeView hidden={isSpymaster} />
         <SpyMasterView hidden={!isSpymaster} />
-      </ModalBody>
-    </>
+      </ModalContent>
+    </Modal>
     // add endgame screen
   );
 }

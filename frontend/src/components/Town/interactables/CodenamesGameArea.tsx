@@ -130,30 +130,38 @@ export function CodenamesGameArea({
     console.log(codenamesAreaController);
   }
 
+  if (joinedGame && isGameFull) {
+    return (
+      <CardGameViews
+        controller={codenamesAreaController}
+        ourPlayer={ourPlayer}
+        townController={coveyTownController}
+        codenamesArea={codenamesArea}
+      />
+    );
+  }
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={() => {
-        closeModal();
         setJoinedGame(false);
-        codenamesAreaController.removePlayer(ourPlayer);
-        coveyTownController.emitCodenamesAreaUpdate(codenamesAreaController);
-        coveyTownController.unPause();
+        if (
+          codenamesAreaController.roles.teamOneOperative === ourPlayer.id ||
+          codenamesAreaController.roles.teamTwoOperative === ourPlayer.id ||
+          codenamesAreaController.roles.teamOneSpymaster === ourPlayer.id ||
+          codenamesAreaController.roles.teamTwoSpymaster === ourPlayer.id
+        ) {
+          codenamesAreaController.removePlayer(ourPlayer);
+          coveyTownController.emitCodenamesAreaUpdate(codenamesAreaController);
+        }
+        closeModal();
       }}>
       <ModalOverlay />
       <ModalContent hidden={!joinedGame || isGameFull}>
         <ModalHeader>Joined the {codenamesArea.name} </ModalHeader>
         <ModalCloseButton />
         <ModalBody>Waiting for {4 - playersInGame} more players...</ModalBody>
-      </ModalContent>
-      <ModalContent hidden={!joinedGame || !isGameFull}>
-        <ModalHeader>Codenames Game in Session... </ModalHeader>
-        <ModalCloseButton />
-        <CardGameViews
-          controller={codenamesAreaController}
-          ourPlayer={ourPlayer}
-          townController={coveyTownController}
-        />
       </ModalContent>
       <ModalContent hidden={!isGameFull || joinedGame}>
         <ModalHeader>Game is currently full!</ModalHeader>
