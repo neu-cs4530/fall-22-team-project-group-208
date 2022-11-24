@@ -17,6 +17,7 @@ import {
   CodenamesArea as CodenamesAreaModel,
   // GameCard as GameCardModel,
 } from '../../../types/CoveyTownSocket';
+import CardGameViews from './CardGameViews';
 import CodenamesAreaInteractable from './GameArea';
 
 export function CodenamesGameArea({
@@ -30,23 +31,6 @@ export function CodenamesGameArea({
   const [isGameFull, setIsGameFull] = useState<boolean>(false);
   const [joinedGame, setJoinedGame] = useState<boolean>(false);
   const [playersInGame, setPlayersInGame] = useState<number>(codenamesAreaController.playerCount);
-  // const [currentTurn, setCurrentTurn] = useState<string>(codenamesAreaController.turn);
-  // const [currentCards, setCurrentCards] = useState<GameCardModel[]>(codenamesAreaController.board);
-  // const [currentRoles, setCurrentRoles] = useState<{
-  //   teamOneSpymaster: string | undefined;
-  //   teamOneOperative: string | undefined;
-  //   teamTwoSpymaster: string | undefined;
-  //   teamTwoOperative: string | undefined;
-  // }>(codenamesAreaController.roles);
-  // const [currentHint, setCurrentHint] = useState<{ word: string; quantity: string }>(
-  //   codenamesAreaController.hint,
-  // );
-  // const isSpymaster =
-  //   ourPlayer.id === currentRoles.teamOneSpymaster ||
-  //   ourPlayer.id === currentRoles.teamTwoSpymaster;
-  // const isTeamOne =
-  //   ourPlayer.id === currentRoles.teamOneSpymaster ||
-  //   ourPlayer.id === currentRoles.teamOneOperative;
   const isOpen = codenamesArea !== undefined;
 
   useEffect(() => {
@@ -62,16 +46,8 @@ export function CodenamesGameArea({
       setIsGameFull(false);
     }
     codenamesAreaController.addListener('playerCountChange', setPlayersInGame);
-    // codenamesAreaController.addListener('turnChange', setCurrentTurn);
-    // codenamesAreaController.addListener('roleChange', setCurrentRoles);
-    // codenamesAreaController.addListener('cardChange', setCurrentCards);
-    // codenamesAreaController.addListener('hintChange', setCurrentHint);
     return () => {
       codenamesAreaController.removeListener('playerCountChange', setPlayersInGame);
-      // codenamesAreaController.removeListener('turnChange', setCurrentTurn);
-      // codenamesAreaController.removeListener('roleChange', setCurrentRoles);
-      // codenamesAreaController.removeListener('cardChange', setCurrentCards);
-      // codenamesAreaController.removeListener('hintChange', setCurrentHint);
     };
   }, [
     coveyTownController,
@@ -171,9 +147,12 @@ export function CodenamesGameArea({
         <ModalBody>Waiting for {4 - playersInGame} more players...</ModalBody>
       </ModalContent>
       <ModalContent hidden={!joinedGame || !isGameFull}>
-        <ModalHeader>New Codenames Game</ModalHeader>
         <ModalCloseButton />
-        <ModalBody>Gameboard</ModalBody>
+        <CardGameViews
+          controller={codenamesAreaController}
+          ourPlayer={ourPlayer}
+          townController={coveyTownController}
+        />
       </ModalContent>
       <ModalContent hidden={!isGameFull || joinedGame}>
         <ModalHeader>Game is currently full!</ModalHeader>
