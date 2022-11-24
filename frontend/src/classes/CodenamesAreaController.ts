@@ -30,11 +30,7 @@ export type CodenamesAreaEvents = {
   /**
    * An event that indicates the cards on the gameboard have changed. This refers to cases where cards have been guessed.
    */
-<<<<<<< Updated upstream
   cardChange: (newCards: GameCard[]) => void;
-=======
-  //cardChange: (newCards: GameCard[]) => void;
->>>>>>> Stashed changes
   /**
    * An event that indicates the hint for the turn has changed.
    */
