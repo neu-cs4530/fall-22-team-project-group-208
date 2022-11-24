@@ -50,7 +50,7 @@ export class GameCard {
   public static initializeCards(): GameCardModel[] {
     /** Clones the possibleWords array so we can mutate it without changing the actual state */
     const clonedPossibleWords: string[] = Object.assign([], POSSIBLE_WORDS);
-    const returnArray: GameCardModel[] = [];
+    // const returnArray: GameCardModel[] = [];
     const cardArray: GameCardModel[] = [];
 
     /** Creates an array of cards of length 25 that have randomly generated words */

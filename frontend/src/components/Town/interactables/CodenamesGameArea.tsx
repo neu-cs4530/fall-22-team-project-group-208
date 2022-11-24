@@ -15,7 +15,7 @@ import { GameCard } from '../../../GameCard';
 import useTownController from '../../../hooks/useTownController';
 import {
   CodenamesArea as CodenamesAreaModel,
-  GameCard as GameCardModel,
+  // GameCard as GameCardModel,
 } from '../../../types/CoveyTownSocket';
 import CardGameViews from './CardGameViews';
 import CodenamesAreaInteractable from './GameArea';
