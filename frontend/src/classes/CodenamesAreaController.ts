@@ -105,7 +105,11 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     this._board = []; // make this GameCard.intializeCards() ??
   }
 
-  public areRolesFilled(): boolean {
+  /**
+   * Determines whether all of the game roles have been assigned to a player.
+   * @returns true if all roles are assigned, false otherwise
+   */
+  private _areRolesFilled(): boolean {
     const teamOneSpymaster = this._roles.teamOneSpymaster;
     const teamOneOperative = this._roles.teamOneOperative;
     const teamTwoSpymaster = this._roles.teamTwoSpymaster;
@@ -138,7 +142,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
       throw new Error('All roles have been filled!');
     }
     this.playerCount = this.playerCount + 1;
-    this._isActive = this.areRolesFilled();
+    this._isActive = this._areRolesFilled();
     this.emit('playerCountChange', this._playerCount);
     this.emit('roleChange', this._roles);
   }
@@ -172,7 +176,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     } else {
       throw new Error('This player is not assigned to any roles!');
     }
-    this._isActive = this.areRolesFilled();
+    this._isActive = this._areRolesFilled();
   }
 
   /**
@@ -182,25 +186,30 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
    * @param guesses The coordinates of the GameCard that is being guessed.
    */
   public makeGuess(guess: string): void {
-    const wordBoard = this._board.map(card => card.name);
+    const wordBoard: string[] = this._board.map(card => card.name);
     const guessCondition = (word: string) => word === guess;
     const guessIndex: number = wordBoard.findIndex(guessCondition);
     const guessCard: GameCard = this._board[guessIndex];
 
     if (guessIndex === -1) {
+      // Theoretically the first two errors should never occur, but it is here for debugging purposes
       throw new Error('Word does not exist on the board');
     } else if (this._turn !== 'Op1' && this._turn !== 'Op2') {
       throw new Error('It is not the proper turn to make a guess');
     } else if (this._turn === 'Op1' && guessCard.team === 'One') {
       guessCard.guessed = true;
       this._teamOneWordsRemaining -= 1;
+      this.emit('cardChange', this._board);
     } else if (this._turn === 'Op2' && guessCard.team === 'Two') {
       guessCard.guessed = true;
       this._teamTwoWordsRemaining -= 1;
+      this.emit('cardChange', this._board);
     } else if (guessCard.team === 'Bomb') {
       // end the game
     } else {
-      // change the turn
+      // change the turn from the operative to the other team's spymaster
+      const newTurn = this._turn === 'Op1' ? 'Spy2' : 'Spy1';
+      this.emit('turnChange', newTurn);
     }
   }
 
