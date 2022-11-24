@@ -2,6 +2,7 @@ import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import clsx from 'clsx';
 import React from 'react';
 import { usePlayersInVideoCall } from '../../../../../classes/TownController';
+import CodenamesGameArea from '../../../../Town/interactables/CodenamesGameArea';
 import ViewingAreaVideo from '../../../../Town/interactables/ViewingAreaVideo';
 import useMainParticipant from '../../hooks/useMainParticipant/useMainParticipant';
 import useParticipants, { ParticipantWithSlot } from '../../hooks/useParticipants/useParticipants';

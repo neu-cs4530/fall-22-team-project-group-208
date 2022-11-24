@@ -20,6 +20,7 @@ import useTownController from '../../../hooks/useTownController';
 export default function NewConversationModal(): JSX.Element {
   const coveyTownController = useTownController();
   const newConversation = useInteractable('conversationArea');
+
   const [topic, setTopic] = useState<string>('');
 
   const isOpen = newConversation !== undefined;

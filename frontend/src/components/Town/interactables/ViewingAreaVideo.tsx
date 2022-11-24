@@ -119,7 +119,7 @@ export function ViewingArea({
   viewingArea: ViewingAreaInteractable;
 }): JSX.Element {
   const townController = useTownController();
-  const viewingAreaController = useViewingAreaController(viewingArea.name);
+  const viewingAreaController = useViewingAreaController(viewingArea.id);
   const [selectIsOpen, setSelectIsOpen] = useState(viewingAreaController.video === undefined);
   const [viewingAreaVideoURL, setViewingAreaVideoURL] = useState(viewingAreaController.video);
   useEffect(() => {

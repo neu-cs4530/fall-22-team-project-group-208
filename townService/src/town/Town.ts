@@ -4,7 +4,7 @@ import { BroadcastOperator } from 'socket.io';
 import IVideoClient from '../lib/IVideoClient';
 import Player from '../lib/Player';
 import TwilioVideo from '../lib/TwilioVideo';
-import { isViewingArea } from '../TestUtils';
+import { isCodenamesArea, isViewingArea } from '../TestUtils';
 import {
   ChatMessage,
   ConversationArea as ConversationAreaModel,
@@ -14,9 +14,11 @@ import {
   ServerToClientEvents,
   SocketData,
   ViewingArea as ViewingAreaModel,
+  CodenamesArea as CodenamesAreaModel,
 } from '../types/CoveyTownSocket';
 import ConversationArea from './ConversationArea';
 import InteractableArea from './InteractableArea';
+import CodenamesArea from './CodenamesArea';
 import ViewingArea from './ViewingArea';
 
 /**
@@ -154,6 +156,14 @@ export default class Town {
         if (viewingArea) {
           (viewingArea as ViewingArea).updateModel(update);
         }
+      } else if (isCodenamesArea(update)) {
+        newPlayer.townEmitter.emit('interactableUpdate', update);
+        const codenamesArea = this._interactables.find(
+          eachInteractable => eachInteractable.id === update.id,
+        );
+        if (codenamesArea) {
+          (codenamesArea as CodenamesArea).updateModel(update);
+        }
       }
     });
     return newPlayer;
@@ -284,6 +294,24 @@ export default class Town {
   }
 
   /**
+   *
+   * @param codenamesArea
+   * @returns
+   */
+  public addCodenamesArea(codenamesArea: CodenamesAreaModel): boolean {
+    const area = this._interactables.find(
+      eachArea => eachArea.id === codenamesArea.id,
+    ) as CodenamesArea;
+    if (!area) {
+      return false;
+    }
+    area.updateModel(codenamesArea);
+    area.addPlayersWithinBounds(this._players);
+    this._broadcastEmitter.emit('interactableUpdate', area.toModel());
+    return true;
+  }
+
+  /**
    * Fetch a player's session based on the provided session token. Returns undefined if the
    * session token is not valid.
    *
@@ -352,7 +380,14 @@ export default class Town {
         ConversationArea.fromMapObject(eachConvAreaObj, this._broadcastEmitter),
       );
 
-    this._interactables = this._interactables.concat(viewingAreas).concat(conversationAreas);
+    const codenamesAreas = objectLayer.objects
+      .filter(eachObject => eachObject.type === 'CodenamesArea')
+      .map(eachConvAreaObj => CodenamesArea.fromMapObject(eachConvAreaObj, this._broadcastEmitter));
+
+    this._interactables = this._interactables
+      .concat(viewingAreas)
+      .concat(conversationAreas)
+      .concat(codenamesAreas);
     this._validateInteractables();
   }
 
