@@ -30,23 +30,23 @@ export function CodenamesGameArea({
   const [isGameFull, setIsGameFull] = useState<boolean>(false);
   const [joinedGame, setJoinedGame] = useState<boolean>(false);
   const [playersInGame, setPlayersInGame] = useState<number>(codenamesAreaController.playerCount);
-  // const [currentTurn, setCurrentTurn] = useState<string>(codenamesAreaController.turn);
-  // const [currentCards, setCurrentCards] = useState<GameCardModel[]>(codenamesAreaController.board);
-  // const [currentRoles, setCurrentRoles] = useState<{
-  //   teamOneSpymaster: string | undefined;
-  //   teamOneOperative: string | undefined;
-  //   teamTwoSpymaster: string | undefined;
-  //   teamTwoOperative: string | undefined;
-  // }>(codenamesAreaController.roles);
-  // const [currentHint, setCurrentHint] = useState<{ word: string; quantity: string }>(
-  //   codenamesAreaController.hint,
-  // );
-  // const isSpymaster =
-  //   ourPlayer.id === currentRoles.teamOneSpymaster ||
-  //   ourPlayer.id === currentRoles.teamTwoSpymaster;
-  // const isTeamOne =
-  //   ourPlayer.id === currentRoles.teamOneSpymaster ||
-  //   ourPlayer.id === currentRoles.teamOneOperative;
+  const [currentTurn, setCurrentTurn] = useState<string>(codenamesAreaController.turn);
+  const [currentCards, setCurrentCards] = useState<GameCardModel[]>(codenamesAreaController.board);
+  const [currentRoles, setCurrentRoles] = useState<{
+    teamOneSpymaster: string | undefined;
+    teamOneOperative: string | undefined;
+    teamTwoSpymaster: string | undefined;
+    teamTwoOperative: string | undefined;
+  }>(codenamesAreaController.roles);
+  const [currentHint, setCurrentHint] = useState<{ word: string; quantity: string }>(
+    codenamesAreaController.hint,
+  );
+  const isSpymaster =
+    ourPlayer.id === currentRoles.teamOneSpymaster ||
+    ourPlayer.id === currentRoles.teamTwoSpymaster;
+  const isTeamOne =
+    ourPlayer.id === currentRoles.teamOneSpymaster ||
+    ourPlayer.id === currentRoles.teamOneOperative;
   const isOpen = codenamesArea !== undefined;
 
   useEffect(() => {
@@ -62,16 +62,16 @@ export function CodenamesGameArea({
       setIsGameFull(false);
     }
     codenamesAreaController.addListener('playerCountChange', setPlayersInGame);
-    // codenamesAreaController.addListener('turnChange', setCurrentTurn);
-    // codenamesAreaController.addListener('roleChange', setCurrentRoles);
-    // codenamesAreaController.addListener('cardChange', setCurrentCards);
-    // codenamesAreaController.addListener('hintChange', setCurrentHint);
+    codenamesAreaController.addListener('turnChange', setCurrentTurn);
+    codenamesAreaController.addListener('roleChange', setCurrentRoles);
+    codenamesAreaController.addListener('cardChange', setCurrentCards);
+    codenamesAreaController.addListener('hintChange', setCurrentHint);
     return () => {
       codenamesAreaController.removeListener('playerCountChange', setPlayersInGame);
-      // codenamesAreaController.removeListener('turnChange', setCurrentTurn);
-      // codenamesAreaController.removeListener('roleChange', setCurrentRoles);
-      // codenamesAreaController.removeListener('cardChange', setCurrentCards);
-      // codenamesAreaController.removeListener('hintChange', setCurrentHint);
+      codenamesAreaController.removeListener('turnChange', setCurrentTurn);
+      codenamesAreaController.removeListener('roleChange', setCurrentRoles);
+      codenamesAreaController.removeListener('cardChange', setCurrentCards);
+      codenamesAreaController.removeListener('hintChange', setCurrentHint);
     };
   }, [
     coveyTownController,
