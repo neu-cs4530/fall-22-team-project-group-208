@@ -83,6 +83,9 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   /* The amount of words for Team 2 that have not been correctly guessed */
   private _teamTwoWordsRemaining: number;
 
+  /* A check for if the game is over */
+  private _isGameOver: { state: boolean; team: string };
+
   /**
    * Create a new CodenamesAreaController
    * @param id
@@ -103,6 +106,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     this._teamTwoWordsRemaining = 8;
     this._playerCount = 0;
     this._board = []; // make this GameCard.intializeCards() ??
+    this._isGameOver = { state: false, team: '' };
   }
 
   /**
@@ -180,6 +184,21 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   }
 
   /**
+   * Submits a hint from the current spymaster and changes the turn to the correct operator
+   * @param newHint the hint that the spymaster sends to the controller via the inputs
+   */
+  public setHint(newHint: { word: string; quantity: string }) {
+    if (!(this._turn === 'Spy1' || this._turn === 'Spy2')) {
+      throw new Error('It is not the proper turn to send a hint');
+    } else {
+      this._hint = newHint;
+      // change the turn from the operative to the other team's spymaster
+      const newTurn = this._turn === 'Spy1' ? 'Op1' : 'Op2';
+      this.emit('turnChange', newTurn);
+    }
+  }
+
+  /**
    * Submits a guess for specific GameCards, and updates the game board based on the guesses.
    * Guesses must be unrevealed and within the bounds of the game board.
    * Only an operative whose turn is the current turn can make a guess.
@@ -194,18 +213,21 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     if (guessIndex === -1) {
       // Theoretically the first two errors should never occur, but it is here for debugging purposes
       throw new Error('Word does not exist on the board');
-    } else if (this._turn !== 'Op1' && this._turn !== 'Op2') {
+    } else if (!(this._turn === 'Op1' || this._turn === 'Op2')) {
       throw new Error('It is not the proper turn to make a guess');
     } else if (this._turn === 'Op1' && guessCard.team === 'One') {
       guessCard.guessed = true;
       this._teamOneWordsRemaining -= 1;
       this.emit('cardChange', this._board);
+      this.checkGameOver();
     } else if (this._turn === 'Op2' && guessCard.team === 'Two') {
       guessCard.guessed = true;
       this._teamTwoWordsRemaining -= 1;
       this.emit('cardChange', this._board);
+      this.checkGameOver();
     } else if (guessCard.team === 'Bomb') {
-      // end the game
+      this._isGameOver = { state: true, team: '' };
+      this.checkGameOver();
     } else {
       // change the turn from the operative to the other team's spymaster
       const newTurn = this._turn === 'Op1' ? 'Spy2' : 'Spy1';
@@ -213,8 +235,20 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     }
   }
 
+  /** Checks if the game is over by seeing if either team has 0 words remaining */
+  public checkGameOver(): void {
+    if (this._teamOneWordsRemaining == 0 || (this._isGameOver && this._turn === 'Op2')) {
+      this._isGameOver = { state: true, team: 'One' };
+      // Increment the win count of each player on team One
+    }
+    if (this._teamTwoWordsRemaining == 0 || (this._isGameOver && this._turn === 'Op1')) {
+      this._isGameOver = { state: true, team: 'Two' };
+      // Increment the win count of each player on team Two
+    }
+  }
+
   /**
-   *
+   * The current roles
    */
   get roles() {
     return this._roles;
@@ -299,6 +333,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     return this._occupants;
   }
 
+  /** The number of words remaining for Team One */
   get teamOneWordsRemaining() {
     return this._teamOneWordsRemaining;
   }
@@ -309,6 +344,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     }
   }
 
+  /** The number of words remaining for Team One */
   get teamTwoWordsRemaining() {
     return this._teamTwoWordsRemaining;
   }
@@ -319,6 +355,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     }
   }
 
+  /** The number of players that are in the current instance of the game */
   get playerCount() {
     return this._playerCount;
   }
@@ -330,6 +367,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     }
   }
 
+  /** The current state of the game board */
   get board() {
     return this._board;
   }
@@ -338,6 +376,17 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     if (this._board !== newBoard) {
       this._board = newBoard;
       this.emit('cardChange', newBoard);
+    }
+  }
+
+  /** The current state of the game */
+  get isGameOver() {
+    return this._isGameOver;
+  }
+
+  public set isGameOver(newState: { state: boolean; team: string }) {
+    if (this._isGameOver.state !== newState.state || this._isGameOver.team !== newState.team) {
+      this._isGameOver = newState;
     }
   }
 

@@ -50,7 +50,6 @@ export class GameCard {
   public static initializeCards(): GameCardModel[] {
     /** Clones the possibleWords array so we can mutate it without changing the actual state */
     const clonedPossibleWords: string[] = Object.assign([], POSSIBLE_WORDS);
-    // const returnArray: GameCardModel[] = [];
     const cardArray: GameCardModel[] = [];
 
     /** Creates an array of cards of length 25 that have randomly generated words */
@@ -89,6 +88,19 @@ export class GameCard {
 
       /** Removes the card from the possible words so there are no duplicate words on the board */
       clonedPossibleWords.filter(name => name !== newWord);
+    }
+
+    /** Shuffles the Card Array */
+    let currentIndex = cardArray.length,
+      temporaryValue,
+      randomIndex;
+
+    while (currentIndex !== 0) {
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex -= 1;
+      temporaryValue = cardArray[currentIndex];
+      cardArray[currentIndex] = cardArray[randomIndex];
+      cardArray[randomIndex] = temporaryValue;
     }
 
     // TODO: fix randomizing cards

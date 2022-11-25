@@ -1,15 +1,12 @@
 import {
   Box,
   Button,
-  FormControl,
-  FormLabel,
   Heading,
   Input,
   Modal,
   ModalBody,
   ModalCloseButton,
   ModalContent,
-  ModalFooter,
   ModalHeader,
   Wrap,
   WrapItem,
@@ -50,6 +47,18 @@ export default function CardGameViews({
     ourPlayer.id === currentRoles.teamOneSpymaster ||
     ourPlayer.id === currentRoles.teamOneOperative;
   const isOpen = controller !== undefined;
+
+  function isDisabled(): boolean {
+    if (isTeamOne && isSpymaster) {
+      return currentTurn !== 'Spy1';
+    } else if (!isTeamOne && isSpymaster) {
+      return currentTurn !== 'Spy2';
+    } else if (isTeamOne && !isSpymaster) {
+      return currentTurn !== 'Op1';
+    } else {
+      return currentTurn !== 'Op2';
+    }
+  }
 
   useEffect(() => {
     controller.addListener('turnChange', setCurrentTurn);
@@ -107,14 +116,15 @@ export default function CardGameViews({
           overflow='hidden'
           color='gray'
           name={card.name}
-          // disable if isTeamOne is true and teamOneSpyorOp === ourPlayer id is false
-          // or if isTeamOne is false and teamTwoSpyorOp === ourPlayer id is false
-          disabled={false}
-          onClick={async () => {
-            // Call makeGuess with card name
-            // emit with town controller
-            console.log('clicked card');
-          }}>
+          disabled={isDisabled()}
+          onClick={
+            // Do we need this to be async?
+            async () => {
+              controller.makeGuess(card.name);
+              townController.emitCodenamesAreaUpdate(controller);
+              console.log('clicked card');
+            }
+          }>
           <Heading as='h4'>{card.name}</Heading>
         </Button>
         <Button
@@ -132,13 +142,12 @@ export default function CardGameViews({
   }
 
   function SpyMasterView({ hidden }: { hidden: boolean }): JSX.Element {
-    const cards: GameCard[] = controller.board;
     const [hint, setHint] = useState<string>('');
     const [hintAmount, setHintAmount] = useState<string>('0');
     return (
       <div className='App' hidden={hidden}>
         <Wrap>
-          {cards.map(eachCard => (
+          {currentCards.map(eachCard => (
             <WrapItem key={eachCard.name}>
               <SpyMasterCardView card={eachCard} />
             </WrapItem>
@@ -161,14 +170,9 @@ export default function CardGameViews({
           <Button
             colorScheme='blue'
             type='submit'
-            // Need to figure out how to disable depending on the turn
-            // disable if isTeamOne is true and teamOneSpyorOp === ourPlayer id is false
-            // or if isTeamOne is false and teamTwoSpyorOp === ourPlayer id is false
-            disabled={false}
+            disabled={isDisabled()}
             onClick={async () => {
-              controller.hint = { word: hint, quantity: hintAmount };
-              // update turn
-              // controller.updateTurn(currentTurn);
+              controller.setHint({ word: hint, quantity: hintAmount });
               townController.emitCodenamesAreaUpdate(controller);
               setHint('');
               setHintAmount('0');
@@ -182,16 +186,18 @@ export default function CardGameViews({
   }
 
   function OperativeView({ hidden }: { hidden: boolean }): JSX.Element {
-    const cards: GameCard[] = controller.board;
     return (
       <div className='App' hidden={hidden}>
         <Wrap>
-          {cards.map(eachCard => (
+          {currentCards.map(eachCard => (
             <WrapItem key={eachCard.name}>
               <OperativeCardView card={eachCard} />
             </WrapItem>
           ))}
         </Wrap>
+        <ModalBody>
+          Hint: {currentHint.word}; #: {currentHint.quantity}
+        </ModalBody>
       </div>
     );
   }
