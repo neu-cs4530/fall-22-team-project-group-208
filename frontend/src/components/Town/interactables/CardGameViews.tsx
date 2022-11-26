@@ -79,7 +79,7 @@ export default function CardGameViews({
       townController.interactEnd(codenamesArea);
       townController.unPause();
     }
-  }, [codenamesArea, townController]);
+  }, [codenamesArea, controller, townController]);
 
   function SpyMasterCardView({ card }: { card: GameCard }) {
     return (
@@ -123,6 +123,7 @@ export default function CardGameViews({
               controller.makeGuess(card.name);
               townController.emitCodenamesAreaUpdate(controller);
               console.log('clicked card');
+              console.log(controller);
             }
           }>
           <Heading as='h4'>{card.name}</Heading>
@@ -177,6 +178,7 @@ export default function CardGameViews({
               setHint('');
               setHintAmount('0');
               console.log('set hint');
+              console.log(controller);
             }}>
             Submit Hint
           </Button>
@@ -196,7 +198,7 @@ export default function CardGameViews({
           ))}
         </Wrap>
         <ModalBody>
-          Hint: {currentHint.word}; #: {currentHint.quantity}
+          Hint: {currentHint.word} #: {currentHint.quantity}
         </ModalBody>
       </div>
     );
