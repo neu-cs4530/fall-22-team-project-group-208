@@ -211,28 +211,27 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     if (guessCard.team === 'One') {
       this._teamOneWordsRemaining -= 1;
       if (this._turn !== 'Op1') {
-        this._turn = 'Spy1';
+        this.turn = 'Spy1';
       }
     } else if (guessCard.team === 'Two') {
       this._teamTwoWordsRemaining -= 1;
       if (this._turn !== 'Op2') {
-        this._turn = 'Spy2';
+        this.turn = 'Spy2';
       }
     } else if (guessCard.team === 'Bomb') {
       if (this._turn !== 'Op1') {
-        this._turn = 'Spy1';
+        this.turn = 'Spy1'; // it does not really matter what this turn becomes
         this._isGameOver = { state: true, team: 'One' };
       }
       if (this._turn !== 'Op2') {
-        this._turn = 'Spy2';
+        this.turn = 'Spy2'; // it does not really matter what this turn becomes
         this._isGameOver = { state: true, team: 'Two' };
       }
       this.emit('isGameOverChange', this._isGameOver);
     } else {
       const newTurn = this._turn === 'Op1' ? 'Spy2' : 'Spy1';
-      this._turn = newTurn;
+      this.turn = newTurn;
     }
-    this.emit('turnChange', this._turn);
     this.checkGameOver();
   }
 

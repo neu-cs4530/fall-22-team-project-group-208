@@ -1,15 +1,15 @@
+import { executionAsyncId } from 'async_hooks';
 import { mock, mockClear } from 'jest-mock-extended';
 import { nanoid } from 'nanoid';
 import { PlayerLocation, GameCard as GameCardModel } from '../types/CoveyTownSocket';
 import CodenamesAreaController, { CodenamesAreaEvents } from './CodenamesAreaController';
 import PlayerController from './PlayerController';
-import { GameCard } from '../GameCard';
 
 describe('[T2] CodenamesAreaController', () => {
   // A valid CdenamesAreaController to be reused within the tests
   let testArea: CodenamesAreaController;
   const mockListeners = mock<CodenamesAreaEvents>();
-  let board: GameCardModel[]; // FACING THE SAME ISSUE AS EARLIER, class GameCard is different from socket GameCard
+  let board: GameCardModel[];
   beforeEach(() => {
     const playerLocation: PlayerLocation = {
       moving: false,
@@ -34,12 +34,86 @@ describe('[T2] CodenamesAreaController', () => {
     testArea.addListener('cardChange', mockListeners.cardChange);
     testArea.addListener('hintChange', mockListeners.hintChange);
     testArea.addListener('playerCountChange', mockListeners.playerCountChange);
-  });
-  beforeAll(() => {
-    // Make this so we have the same board every test
-    // Current this is generating a random board each time so we don't want this!!!
-    // Also, not sure if this is the board that the CodenamesAreaController uses, need to access it!
-    board = GameCard.initializeCards();
+
+    const card1: GameCardModel = { name: 'AFRICA', team: 'One', guessed: false, color: 'blue' };
+    const card2: GameCardModel = { name: 'BEACH', team: 'One', guessed: false, color: 'blue' };
+    const card3: GameCardModel = { name: 'COPPER', team: 'One', guessed: false, color: 'blue' };
+    const card4: GameCardModel = { name: 'DEATH', team: 'One', guessed: false, color: 'blue' };
+    const card5: GameCardModel = { name: 'EMBASSY', team: 'One', guessed: false, color: 'blue' };
+    const card6: GameCardModel = { name: 'FRANCE', team: 'One', guessed: false, color: 'blue' };
+    const card7: GameCardModel = { name: 'GAME', team: 'One', guessed: false, color: 'blue' };
+    const card8: GameCardModel = { name: 'HAM', team: 'One', guessed: false, color: 'blue' };
+    const card9: GameCardModel = { name: 'ICE', team: 'Two', guessed: false, color: 'red' };
+    const card10: GameCardModel = { name: 'JACK', team: 'Two', guessed: false, color: 'red' };
+    const card11: GameCardModel = { name: 'KANGAROO', team: 'Two', guessed: false, color: 'red' };
+    const card12: GameCardModel = { name: 'LAB', team: 'Two', guessed: false, color: 'red' };
+    const card13: GameCardModel = { name: 'MAIL', team: 'Two', guessed: false, color: 'red' };
+    const card14: GameCardModel = { name: 'NAIL', team: 'Two', guessed: false, color: 'red' };
+    const card15: GameCardModel = { name: 'OCTOPUS', team: 'Two', guessed: false, color: 'red' };
+    const card16: GameCardModel = { name: 'PALM', team: 'Bomb', guessed: false, color: 'black' };
+    const card17: GameCardModel = { name: 'QUEEN', team: 'Neutral', guessed: false, color: 'gray' };
+    const card18: GameCardModel = {
+      name: 'RABBIT',
+      team: 'Neutral',
+      guessed: false,
+      color: 'gray',
+    };
+    const card19: GameCardModel = {
+      name: 'SATELLITE',
+      team: 'Neutral',
+      guessed: false,
+      color: 'gray',
+    };
+    const card20: GameCardModel = { name: 'TABLE', team: 'Neutral', guessed: false, color: 'gray' };
+    const card21: GameCardModel = {
+      name: 'UNDERTAKER',
+      team: 'Neutrale',
+      guessed: false,
+      color: 'gray',
+    };
+    const card22: GameCardModel = {
+      name: 'VACUUM',
+      team: 'Neutral',
+      guessed: false,
+      color: 'gray',
+    };
+    const card23: GameCardModel = { name: 'WAKE', team: 'Neutral', guessed: false, color: 'gray' };
+    const card24: GameCardModel = {
+      name: 'WASHINGTON',
+      team: 'Neutral',
+      guessed: false,
+      color: 'gray',
+    };
+    const card25: GameCardModel = { name: 'YARD', team: 'Neutral', guessed: false, color: 'gray' };
+    board = [
+      card1,
+      card2,
+      card3,
+      card4,
+      card5,
+      card6,
+      card7,
+      card8,
+      card9,
+      card10,
+      card11,
+      card12,
+      card13,
+      card14,
+      card15,
+      card16,
+      card17,
+      card18,
+      card19,
+      card20,
+      card21,
+      card22,
+      card23,
+      card24,
+      card25,
+    ];
+    testArea.board = board;
+    testArea.turn = 'Op1';
   });
   describe('joinPlayer', () => {
     it('Assigns the first two players to join as spymasters', () => {
@@ -136,22 +210,33 @@ describe('[T2] CodenamesAreaController', () => {
   });
   describe('makeGuess', () => {
     it('Does not change a turn if the guess is correct', () => {
-      expect(testArea.turn).toEqual('Spy1');
-      expect(board[0].team).toEqual('One');
-      // TODO: Make the input string a guess that is actually in the board and correct!!!!
-      testArea.makeGuess(board[0].name);
-      expect(testArea.turn).toEqual('Spy1');
-      expect(mockListeners.turnChange).not.toBeCalled();
+      expect(testArea.turn).toEqual('Op1');
+      expect(board[7].team).toEqual('One');
+      // The turn is set to "Op1" above, so the turnChange event is expected to be called once
+      expect(mockListeners.turnChange).toBeCalledTimes(1);
+      testArea.makeGuess('HAM');
+      expect(testArea.turn).toEqual('Op1');
+      expect(mockListeners.turnChange).toBeCalledTimes(1);
     });
     it('Changes a turn and emits a turnChange event if the guess is incorrect', () => {
-      // TODO: Make the input string a guess that is acutally in the board BUT INCORRECT!!!!
-      testArea.makeGuess('AGENT');
-      expect(testArea.turn).toEqual('Op2');
-      expect(mockListeners.turnChange).toBeCalledWith('Op2');
+      expect(testArea.turn).toEqual('Op1');
+      expect(board[9].team).toEqual('Two');
+      testArea.makeGuess('JACK');
+      expect(testArea.turn).toEqual('Spy2');
+      expect(mockListeners.turnChange).toBeCalledWith('Spy2');
     });
-    it('Emits a cardChange event if the guess is correct, representing a flipped card in the frontend', () => {
-      testArea.makeGuess(board[0].name);
-      expect(board[0].guessed).toBe(true);
+    it('Emits a cardChange event if the guess is correct, and the number of team one words decrements by one', () => {
+      expect(testArea.teamOneWordsRemaining).toEqual(8);
+      testArea.makeGuess('AFRICA');
+      expect(testArea.teamOneWordsRemaining).toEqual(7);
+      expect(board[0].guessed).toEqual(true);
+      expect(mockListeners.cardChange).toBeCalledWith(board);
+    });
+    it('Emits a cardChange event even if the guess is incorrect, and the number of team two words decrements by one', () => {
+      expect(testArea.teamTwoWordsRemaining).toEqual(8);
+      testArea.makeGuess('OCTOPUS');
+      expect(testArea.teamTwoWordsRemaining).toEqual(7);
+      expect(board[14].guessed).toEqual(true);
       expect(mockListeners.cardChange).toBeCalledWith(board);
     });
     it('Throws an error if the guess does not exist on the board', () => {
@@ -160,8 +245,7 @@ describe('[T2] CodenamesAreaController', () => {
       );
     });
     it('Throws an error if either Spymaster somehow makes a guess', () => {
-      testArea.turn = 'Op2';
-      // TODO: Make the input string a valid guess that is correct and in the board!!!!
+      testArea.turn = 'Spy1';
       expect(() => testArea.makeGuess('AFRICA')).toThrowError(
         'It is not the proper turn to make a guess',
       );
