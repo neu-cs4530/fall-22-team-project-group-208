@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import TypedEmitter from 'typed-emitter';
 import PlayerController from './PlayerController';
 import { CodenamesArea as CodenamesAreaModel, GameCard } from '../types/CoveyTownSocket';
+import { threadId } from 'worker_threads';
 
 /**
  * The events that the CodenamesAreaController emits to subscribers. These events
@@ -39,6 +40,10 @@ export type CodenamesAreaEvents = {
    *
    */
   playerCountChange: (newCount: number) => void;
+  /**
+   *
+   */
+  isGameOverChange: (newState: { state: boolean; team: string }) => void;
 };
 
 /**
@@ -184,21 +189,6 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   }
 
   /**
-   * Submits a hint from the current spymaster and changes the turn to the correct operator
-   * @param newHint the hint that the spymaster sends to the controller via the inputs
-   */
-  public setHint(newHint: { word: string; quantity: string }) {
-    if (!(this._turn === 'Spy1' || this._turn === 'Spy2')) {
-      throw new Error('It is not the proper turn to send a hint');
-    } else {
-      this._hint = newHint;
-      // change the turn from the operative to the other team's spymaster
-      const newTurn = this._turn === 'Spy1' ? 'Op1' : 'Op2';
-      this.emit('turnChange', newTurn);
-    }
-  }
-
-  /**
    * Submits a guess for specific GameCards, and updates the game board based on the guesses.
    * Guesses must be unrevealed and within the bounds of the game board.
    * Only an operative whose turn is the current turn can make a guess.
@@ -213,36 +203,50 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     if (guessIndex === -1) {
       // Theoretically the first two errors should never occur, but it is here for debugging purposes
       throw new Error('Word does not exist on the board');
-    } else if (!(this._turn === 'Op1' || this._turn === 'Op2')) {
-      throw new Error('It is not the proper turn to make a guess');
-    } else if (this._turn === 'Op1' && guessCard.team === 'One') {
-      guessCard.guessed = true;
-      this._teamOneWordsRemaining -= 1;
-      this.emit('cardChange', this._board);
-      this.checkGameOver();
-    } else if (this._turn === 'Op2' && guessCard.team === 'Two') {
-      guessCard.guessed = true;
-      this._teamTwoWordsRemaining -= 1;
-      this.emit('cardChange', this._board);
-      this.checkGameOver();
-    } else if (guessCard.team === 'Bomb') {
-      this._isGameOver = { state: true, team: '' };
-      this.checkGameOver();
-    } else {
-      // change the turn from the operative to the other team's spymaster
-      const newTurn = this._turn === 'Op1' ? 'Spy2' : 'Spy1';
-      this.emit('turnChange', newTurn);
     }
+    if (!(this._turn === 'Op1' || this._turn === 'Op2')) {
+      throw new Error('It is not the proper turn to make a guess');
+    }
+    guessCard.guessed = true;
+    this.emit('cardChange', this._board);
+    if (guessCard.team === 'One') {
+      this._teamOneWordsRemaining -= 1;
+      if (this._turn !== 'Op1') {
+        this._turn = 'Spy1';
+      }
+    } else if (guessCard.team === 'Two') {
+      this._teamTwoWordsRemaining -= 1;
+      if (this._turn !== 'Op2') {
+        this._turn = 'Spy2';
+      }
+    } else if (guessCard.team === 'Bomb') {
+      if (this._turn !== 'Op1') {
+        this._turn = 'Spy1';
+        this._isGameOver = { state: true, team: 'One' };
+      }
+      if (this._turn !== 'Op2') {
+        this._turn = 'Spy2';
+        this._isGameOver = { state: true, team: 'Two' };
+      }
+      this.emit('isGameOverChange', this._isGameOver);
+    } else {
+      const newTurn = this._turn === 'Op1' ? 'Spy2' : 'Spy1';
+      this._turn = newTurn;
+    }
+    this.emit('turnChange', this._turn);
+    this.checkGameOver();
   }
 
   /** Checks if the game is over by seeing if either team has 0 words remaining */
   public checkGameOver(): void {
-    if (this._teamOneWordsRemaining == 0 || (this._isGameOver && this._turn === 'Op2')) {
+    if (this._teamOneWordsRemaining == 0) {
       this._isGameOver = { state: true, team: 'One' };
+      this.emit('isGameOverChange', this._isGameOver);
       // Increment the win count of each player on team One
     }
-    if (this._teamTwoWordsRemaining == 0 || (this._isGameOver && this._turn === 'Op1')) {
+    if (this._teamTwoWordsRemaining == 0) {
       this._isGameOver = { state: true, team: 'Two' };
+      this.emit('isGameOverChange', this._isGameOver);
       // Increment the win count of each player on team Two
     }
   }
@@ -302,10 +306,12 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
    * @param newHint The word to set as the hint and the amount of words within the board that this hint correlates with.
    */
   public set hint(newHint: { word: string; quantity: string }) {
-    if (this._hint.word !== newHint.word || this._hint.quantity !== newHint.quantity) {
-      this._hint = newHint;
-      this.emit('hintChange', newHint);
-    }
+    this._hint = newHint;
+    // change the turn from the operative to the other team's spymaster
+    const newTurn = this._turn === 'Spy1' ? 'Op1' : 'Op2';
+    this._turn = newTurn;
+    this.emit('turnChange', newTurn);
+    this.emit('hintChange', newHint);
   }
 
   /**
@@ -412,6 +418,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
       teamTwoWordsRemaining: this.teamTwoWordsRemaining,
       playerCount: this.playerCount,
       board: this._board,
+      isGameOver: this._isGameOver,
     };
   }
 
@@ -441,6 +448,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     this.teamTwoWordsRemaining = updatedModel.teamTwoWordsRemaining;
     this.playerCount = updatedModel.playerCount;
     this.board = updatedModel.board;
+    this.isGameOver = updatedModel.isGameOver;
   }
 }
 

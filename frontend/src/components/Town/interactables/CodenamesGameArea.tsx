@@ -87,6 +87,7 @@ export function CodenamesGameArea({
         teamTwoWordsRemaining: 8,
         playerCount: 1,
         board: GameCard.initializeCards(),
+        isGameOver: { state: false, team: '' },
       };
       try {
         await coveyTownController.createCodenamesArea(codenamesToCreate);

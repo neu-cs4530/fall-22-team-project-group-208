@@ -88,6 +88,7 @@ export interface CodenamesArea {
   teamTwoWordsRemaining: number;
   playerCount: number;
   board: GameCard[];
+  isGameOver: { state: boolean, team: string };
 }
 
 export interface GameCard {

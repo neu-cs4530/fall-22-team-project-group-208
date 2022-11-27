@@ -8,6 +8,7 @@ import {
   ModalCloseButton,
   ModalContent,
   ModalHeader,
+  useToast,
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
@@ -40,6 +41,9 @@ export default function CardGameViews({
   const [currentHint, setCurrentHint] = useState<{ word: string; quantity: string }>(
     controller.hint,
   );
+  const [isGameOver, setIsGameOver] = useState<{ state: boolean; team: string }>(
+    controller.isGameOver,
+  );
   const isSpymaster =
     ourPlayer.id === currentRoles.teamOneSpymaster ||
     ourPlayer.id === currentRoles.teamTwoSpymaster;
@@ -65,13 +69,15 @@ export default function CardGameViews({
     controller.addListener('roleChange', setCurrentRoles);
     controller.addListener('cardChange', setCurrentCards);
     controller.addListener('hintChange', setCurrentHint);
+    controller.addListener('isGameOverChange', setIsGameOver);
     return () => {
       controller.removeListener('turnChange', setCurrentTurn);
       controller.removeListener('roleChange', setCurrentRoles);
       controller.removeListener('cardChange', setCurrentCards);
       controller.removeListener('hintChange', setCurrentHint);
+      controller.removeListener('isGameOverChange', setIsGameOver);
     };
-  }, [controller]);
+  }, [controller, setCurrentTurn, setCurrentRoles, setCurrentCards, setCurrentHint, setIsGameOver]);
 
   /* closes screen when exit is pressed */
   const closeModal = useCallback(() => {
@@ -80,6 +86,8 @@ export default function CardGameViews({
       townController.unPause();
     }
   }, [codenamesArea, controller, townController]);
+
+  const toast = useToast();
 
   function SpyMasterCardView({ card }: { card: GameCard }) {
     return (
@@ -99,7 +107,8 @@ export default function CardGameViews({
           borderRadius='lg'
           overflow='hidden'
           color={card.color}
-          borderColor={card.color}>
+          borderColor={card.color}
+          background={'lightgreen'}>
           <Heading as='h4'>{card.name}</Heading>
         </Box>
       </>
@@ -117,15 +126,12 @@ export default function CardGameViews({
           color='gray'
           name={card.name}
           disabled={isDisabled()}
-          onClick={
-            // Do we need this to be async?
-            async () => {
-              controller.makeGuess(card.name);
-              townController.emitCodenamesAreaUpdate(controller);
-              console.log('clicked card');
-              console.log(controller);
-            }
-          }>
+          onClick={() => {
+            controller.makeGuess(card.name);
+            townController.emitCodenamesAreaUpdate(controller);
+            console.log('clicked card');
+            console.log(controller);
+          }}>
           <Heading as='h4'>{card.name}</Heading>
         </Button>
         <Button
@@ -147,6 +153,9 @@ export default function CardGameViews({
     const [hintAmount, setHintAmount] = useState<string>('0');
     return (
       <div className='App' hidden={hidden}>
+        <ModalHeader hidden={!isTeamOne}>Your Team: Blue Team </ModalHeader>
+        <ModalHeader hidden={isTeamOne}>Your Team: Red Team </ModalHeader>
+        <ModalHeader>Current Turn: {currentTurn} </ModalHeader>
         <Wrap>
           {currentCards.map(eachCard => (
             <WrapItem key={eachCard.name}>
@@ -173,7 +182,7 @@ export default function CardGameViews({
             type='submit'
             disabled={isDisabled()}
             onClick={async () => {
-              controller.setHint({ word: hint, quantity: hintAmount });
+              controller.hint = { word: hint, quantity: hintAmount };
               townController.emitCodenamesAreaUpdate(controller);
               setHint('');
               setHintAmount('0');
@@ -188,8 +197,34 @@ export default function CardGameViews({
   }
 
   function OperativeView({ hidden }: { hidden: boolean }): JSX.Element {
+    if (
+      ((isTeamOne && isGameOver.team === 'Two') || (!isTeamOne && isGameOver.team === 'One')) &&
+      isGameOver.state
+    ) {
+      toast({
+        title: 'Your team lost!',
+        description: 'Leave the area and rejoin to start a new game.',
+        status: 'error',
+        duration: 9000,
+        isClosable: true,
+      });
+    } else if (
+      ((isTeamOne && isGameOver.team === 'One') || (!isTeamOne && isGameOver.team === 'Two')) &&
+      isGameOver.state
+    ) {
+      toast({
+        title: 'Your team won!',
+        description: 'Leave the area and rejoin to start a new game.',
+        status: 'success',
+        duration: 9000,
+        isClosable: true,
+      });
+    }
     return (
       <div className='App' hidden={hidden}>
+        <ModalHeader hidden={!isTeamOne}>Your Team: Blue Team </ModalHeader>
+        <ModalHeader hidden={isTeamOne}>Your Team: Red Team </ModalHeader>
+        <ModalHeader>Current Turn: {currentTurn} </ModalHeader>
         <Wrap>
           {currentCards.map(eachCard => (
             <WrapItem key={eachCard.name}>
@@ -203,6 +238,34 @@ export default function CardGameViews({
       </div>
     );
   }
+
+  // function EndGameView({
+  //   winningState,
+  // }: {
+  //   winningState: { state: boolean; team: string };
+  // }): JSX.Element {
+  //   return (
+  //     <div className='App'>
+  //       <ModalBody
+  //         hidden={
+  //           (isTeamOne && winningState.team === 'Two') ||
+  //           (!isTeamOne && winningState.team === 'One') ||
+  //           !winningState.state
+  //         }>
+  //         Game Over: Your team won!
+  //       </ModalBody>
+  //       <ModalBody
+  //         hidden={
+  //           (isTeamOne && winningState.team === 'One') ||
+  //           (!isTeamOne && winningState.team === 'Two') ||
+  //           !winningState.state
+  //         }>
+  //         Game Over: Your team lost!
+  //       </ModalBody>
+  //     </div>
+  //   );
+  // }
+
   return (
     <Modal
       isOpen={isOpen}
@@ -211,13 +274,12 @@ export default function CardGameViews({
         townController.emitCodenamesAreaUpdate(controller);
         closeModal();
       }}>
-      <ModalHeader>Codenames Game in Session... </ModalHeader>
       <ModalContent>
         <ModalCloseButton />
-        <OperativeView hidden={isSpymaster} />
-        <SpyMasterView hidden={!isSpymaster} />
+        <OperativeView hidden={isSpymaster || isGameOver.state} />
+        <SpyMasterView hidden={!isSpymaster || isGameOver.state} />
+        {/* <EndGameView winningState={isGameOver} /> */}
       </ModalContent>
     </Modal>
-    // add endgame screen
   );
 }

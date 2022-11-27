@@ -45,6 +45,9 @@ export default class CodenamesArea extends InteractableArea {
   /* The players currently in the game. */
   private _playerCount: number;
 
+  /* The game over state. */
+  private _isGameOver: { state: boolean; team: string };
+
   // TODO: id should be replaced with a CodenamesAreaModel in CoveyTownSocket.d.ts
   public constructor(id: string, coordinates: BoundingBox, townEmitter: TownEmitter) {
     super(id, coordinates, townEmitter);
@@ -61,6 +64,7 @@ export default class CodenamesArea extends InteractableArea {
     this._redWordsRemaining = CARDS_FOR_RED_TEAM;
     this._playerCount = 0;
     this._board = [];
+    this._isGameOver = { state: false, team: '' };
   }
 
   /**
@@ -265,6 +269,7 @@ export default class CodenamesArea extends InteractableArea {
       teamTwoWordsRemaining: this._redWordsRemaining,
       playerCount: this._playerCount,
       board: this._board,
+      isGameOver: this._isGameOver,
     };
   }
 
@@ -281,6 +286,7 @@ export default class CodenamesArea extends InteractableArea {
     teamTwoWordsRemaining,
     playerCount,
     board,
+    isGameOver,
   }: CodenamesAreaModel) {
     this._turn = turn;
     this._roles = roles;
@@ -289,6 +295,7 @@ export default class CodenamesArea extends InteractableArea {
     this._redWordsRemaining = teamTwoWordsRemaining;
     this._playerCount = playerCount;
     this._board = board;
+    this._isGameOver = isGameOver;
   }
 
   /**

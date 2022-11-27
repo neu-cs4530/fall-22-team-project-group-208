@@ -49,7 +49,7 @@ export class GameCard {
    */
   public static initializeCards(): GameCardModel[] {
     /** Clones the possibleWords array so we can mutate it without changing the actual state */
-    const clonedPossibleWords: string[] = Object.assign([], POSSIBLE_WORDS);
+    let clonedPossibleWords: string[] = Object.assign([], POSSIBLE_WORDS);
     const cardArray: GameCardModel[] = [];
 
     /** Creates an array of cards of length 25 that have randomly generated words */
@@ -87,7 +87,7 @@ export class GameCard {
       cardArray.push(newCard);
 
       /** Removes the card from the possible words so there are no duplicate words on the board */
-      clonedPossibleWords.filter(name => name !== newWord);
+      clonedPossibleWords = clonedPossibleWords.filter(name => name !== newWord);
     }
 
     /** Shuffles the Card Array */
