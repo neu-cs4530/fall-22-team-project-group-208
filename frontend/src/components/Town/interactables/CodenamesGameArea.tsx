@@ -69,26 +69,50 @@ export function CodenamesGameArea({
 
   const createCodenames = useCallback(async () => {
     if (codenamesAreaController) {
-      const codenamesToCreate: CodenamesAreaModel = {
-        id: codenamesAreaController.id,
-        occupantsID: [ourPlayer.id],
-        turn: 'Spy1',
-        roles: {
-          teamOneSpymaster: ourPlayer.id,
-          teamOneOperative: undefined,
-          teamTwoSpymaster: undefined,
-          teamTwoOperative: undefined,
-        },
-        hint: {
-          word: '',
-          quantity: '0',
-        },
-        teamOneWordsRemaining: 8,
-        teamTwoWordsRemaining: 8,
-        playerCount: 1,
-        board: GameCard.initializeCards(),
-        isGameOver: { state: false, team: '' },
-      };
+      let codenamesToCreate: CodenamesAreaModel;
+      if (codenamesAreaController.isGameOver.state) {
+        codenamesToCreate = {
+          id: codenamesAreaController.id,
+          occupantsID: [ourPlayer.id],
+          turn: 'Spy1',
+          roles: {
+            teamOneSpymaster: ourPlayer.id,
+            teamOneOperative: undefined,
+            teamTwoSpymaster: undefined,
+            teamTwoOperative: undefined,
+          },
+          hint: {
+            word: '',
+            quantity: '0',
+          },
+          teamOneWordsRemaining: 8,
+          teamTwoWordsRemaining: 8,
+          playerCount: codenamesAreaController.playerCount + 1,
+          board: GameCard.initializeCards(),
+          isGameOver: { state: false, team: '' },
+        };
+      } else {
+        codenamesToCreate = {
+          id: codenamesAreaController.id,
+          occupantsID: [ourPlayer.id],
+          turn: 'Spy1',
+          roles: {
+            teamOneSpymaster: ourPlayer.id,
+            teamOneOperative: undefined,
+            teamTwoSpymaster: undefined,
+            teamTwoOperative: undefined,
+          },
+          hint: {
+            word: '',
+            quantity: '0',
+          },
+          teamOneWordsRemaining: 8,
+          teamTwoWordsRemaining: 8,
+          playerCount: 1,
+          board: GameCard.initializeCards(),
+          isGameOver: { state: false, team: '' },
+        };
+      }
       try {
         await coveyTownController.createCodenamesArea(codenamesToCreate);
         toast({
@@ -117,7 +141,10 @@ export function CodenamesGameArea({
    * add an else if checking if game is full
    */
   function joinCodenames() {
-    if (codenamesAreaController.occupants.length === 0) {
+    if (
+      codenamesAreaController.occupants.length === 0 ||
+      codenamesAreaController.isGameOver.state
+    ) {
       createCodenames();
     } else {
       toast({
@@ -128,7 +155,6 @@ export function CodenamesGameArea({
     setJoinedGame(true);
     codenamesAreaController.joinPlayer(ourPlayer);
     coveyTownController.emitCodenamesAreaUpdate(codenamesAreaController);
-    console.log(codenamesAreaController);
   }
 
   if (joinedGame && isGameFull) {

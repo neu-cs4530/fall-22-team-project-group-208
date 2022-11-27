@@ -220,29 +220,29 @@ export default function CardGameViews({
   }
 
   function OperativeView({ hidden }: { hidden: boolean }): JSX.Element {
-    if (
-      ((isTeamOne && gameOverTeam === 'Two') || (!isTeamOne && gameOverTeam === 'One')) &&
-      gameOverState
-    ) {
-      toast({
-        title: 'Your team lost!',
-        description: 'Leave the area and rejoin to start a new game.',
-        status: 'error',
-        duration: 9000,
-        isClosable: true,
-      });
-    } else if (
-      ((isTeamOne && gameOverTeam === 'One') || (!isTeamOne && gameOverTeam === 'Two')) &&
-      gameOverState
-    ) {
-      toast({
-        title: 'Your team won!',
-        description: 'Leave the area and rejoin to start a new game.',
-        status: 'success',
-        duration: 9000,
-        isClosable: true,
-      });
-    }
+    // if (
+    //   ((isTeamOne && gameOverTeam === 'Two') || (!isTeamOne && gameOverTeam === 'One')) &&
+    //   gameOverState
+    // ) {
+    //   toast({
+    //     title: 'Your team lost!',
+    //     description: 'Leave the area and rejoin to start a new game.',
+    //     status: 'error',
+    //     duration: 9000,
+    //     isClosable: true,
+    //   });
+    // } else if (
+    //   ((isTeamOne && gameOverTeam === 'One') || (!isTeamOne && gameOverTeam === 'Two')) &&
+    //   gameOverState
+    // ) {
+    //   toast({
+    //     title: 'Your team won!',
+    //     description: 'Leave the area and rejoin to start a new game.',
+    //     status: 'success',
+    //     duration: 9000,
+    //     isClosable: true,
+    //   });
+    // }
     return (
       <div className='App' hidden={hidden}>
         <ModalHeader hidden={!isTeamOne}>Your Team: Blue Team </ModalHeader>
@@ -279,7 +279,7 @@ export default function CardGameViews({
             (!isTeamOne && gameOverTeam === 'One') ||
             !gameOverState
           }>
-          Your team won! Leave the codenames area and rejoin to start a new game.
+          Your team won! Close out of this window to start a new game.
         </ModalBody>
         <ModalBody
           hidden={
@@ -287,7 +287,7 @@ export default function CardGameViews({
             (!isTeamOne && gameOverTeam === 'Two') ||
             !gameOverState
           }>
-          Your team lost! Leave the codenames area and rejoin to start a new game.
+          Your team lost! Close out of this window to start a new game.
         </ModalBody>
         <OperativeView hidden={isSpymaster || gameOverState} />
         <SpyMasterView hidden={!isSpymaster || gameOverState} />
