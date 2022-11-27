@@ -207,12 +207,8 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     if (!(this._turn === 'Op1' || this._turn === 'Op2')) {
       throw new Error('It is not the proper turn to make a guess');
     }
-
-    //this._board[guessIndex].guessed = true;
     guessCard.guessed = true;
-    //this.emit('cardChange', newBoard);
     this.board = newBoard;
-    //this.emit('cardChange', this._board);
     if (guessCard.team === 'One') {
       this._teamOneWordsRemaining -= 1;
       if (this._turn !== 'Op1') {
@@ -226,13 +222,12 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     } else if (guessCard.team === 'Bomb') {
       if (this._turn !== 'Op1') {
         this.turn = 'Spy1'; // it does not really matter what this turn becomes
-        this._isGameOver = { state: true, team: 'One' };
+        this.isGameOver = { state: true, team: 'One' };
       }
       if (this._turn !== 'Op2') {
         this.turn = 'Spy2'; // it does not really matter what this turn becomes
-        this._isGameOver = { state: true, team: 'Two' };
+        this.isGameOver = { state: true, team: 'Two' };
       }
-      this.emit('isGameOverChange', this._isGameOver);
     } else {
       const newTurn = this._turn === 'Op1' ? 'Spy2' : 'Spy1';
       this.turn = newTurn;
@@ -243,13 +238,11 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   /** Checks if the game is over by seeing if either team has 0 words remaining */
   public checkGameOver(): void {
     if (this._teamOneWordsRemaining == 0) {
-      this._isGameOver = { state: true, team: 'One' };
-      this.emit('isGameOverChange', this._isGameOver);
+      this.isGameOver = { state: true, team: 'One' };
       // Increment the win count of each player on team One
     }
     if (this._teamTwoWordsRemaining == 0) {
-      this._isGameOver = { state: true, team: 'Two' };
-      this.emit('isGameOverChange', this._isGameOver);
+      this.isGameOver = { state: true, team: 'Two' };
       // Increment the win count of each player on team Two
     }
   }
@@ -382,7 +375,6 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   }
 
   public set board(newBoard: GameCard[]) {
-    //this._board.forEach(card => card.color)
     if (this._board !== newBoard) {
       this._board = newBoard;
       this.emit('cardChange', newBoard);
@@ -397,6 +389,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   public set isGameOver(newState: { state: boolean; team: string }) {
     if (this._isGameOver.state !== newState.state || this._isGameOver.team !== newState.team) {
       this._isGameOver = newState;
+      this.emit('isGameOverChange', newState);
     }
   }
 
