@@ -41,9 +41,8 @@ export default function CardGameViews({
   const [currentHint, setCurrentHint] = useState<{ word: string; quantity: string }>(
     controller.hint,
   );
-  const [isGameOver, setIsGameOver] = useState<{ state: boolean; team: string }>(
-    controller.isGameOver,
-  );
+  const [gameOverTeam, setGameOverTeam] = useState<string>(controller.isGameOver.team);
+  const [gameOverState, setGameOverState] = useState<boolean>(controller.isGameOver.state);
   const isSpymaster =
     ourPlayer.id === currentRoles.teamOneSpymaster ||
     ourPlayer.id === currentRoles.teamTwoSpymaster;
@@ -65,19 +64,37 @@ export default function CardGameViews({
   }
 
   useEffect(() => {
+    // const updateIsGameOver = (newGameOverState: { state: boolean; team: string }) => {
+    //   if (newGameOverState.state !== gameOverState) {
+    //     setGameOverState(newGameOverState.state);
+    //   }
+    //   if (newGameOverState.team !== gameOverTeam) {
+    //     setGameOverTeam(newGameOverState.team);
+    //   }
+    // };
     controller.addListener('turnChange', setCurrentTurn);
     controller.addListener('roleChange', setCurrentRoles);
     controller.addListener('cardChange', setCurrentCards);
     controller.addListener('hintChange', setCurrentHint);
-    controller.addListener('isGameOverChange', setIsGameOver);
+    // controller.addListener('isGameOverChange', updateIsGameOver);
     return () => {
       controller.removeListener('turnChange', setCurrentTurn);
       controller.removeListener('roleChange', setCurrentRoles);
       controller.removeListener('cardChange', setCurrentCards);
       controller.removeListener('hintChange', setCurrentHint);
-      controller.removeListener('isGameOverChange', setIsGameOver);
+      // controller.removeListener('isGameOverChange', updateIsGameOver);
     };
-  }, [controller, setCurrentTurn, setCurrentRoles, setCurrentCards, setCurrentHint, setIsGameOver]);
+  }, [
+    controller,
+    setCurrentTurn,
+    setCurrentRoles,
+    setCurrentCards,
+    setCurrentHint,
+    // setGameOverState,
+    // setGameOverTeam,
+    // gameOverState,
+    // gameOverTeam,
+  ]);
 
   /* closes screen when exit is pressed */
   const closeModal = useCallback(() => {
@@ -110,9 +127,11 @@ export default function CardGameViews({
           borderRadius='lg'
           overflow='hidden'
           color={card.color}
+          boxSize='200'
+          height={75}
           borderColor={card.color}
           background={'lightgreen'}>
-          <Heading as='h4'>{card.name}</Heading>
+          {card.name}
         </Box>
       </>
     );
@@ -127,15 +146,17 @@ export default function CardGameViews({
           borderRadius='lg'
           overflow='hidden'
           color='gray'
+          boxSize='200'
+          height={75}
           name={card.name}
           disabled={isDisabled()}
           onClick={() => {
             controller.makeGuess(card.name);
+            console.log(controller);
             townController.emitCodenamesAreaUpdate(controller);
             console.log('clicked card');
-            console.log(controller);
           }}>
-          <Heading as='h4'>{card.name}</Heading>
+          {card.name}
         </Button>
         <Button
           hidden={!card.guessed}
@@ -143,9 +164,11 @@ export default function CardGameViews({
           borderRadius='lg'
           overflow='hidden'
           color={card.color}
+          boxSize='200'
+          height={75}
           name={card.name}
           disabled={card.guessed}>
-          <Heading as='h4'>{card.name}</Heading>
+          {card.name}
         </Button>
       </>
     );
@@ -200,8 +223,8 @@ export default function CardGameViews({
 
   function OperativeView({ hidden }: { hidden: boolean }): JSX.Element {
     if (
-      ((isTeamOne && isGameOver.team === 'Two') || (!isTeamOne && isGameOver.team === 'One')) &&
-      isGameOver.state
+      ((isTeamOne && gameOverTeam === 'Two') || (!isTeamOne && gameOverTeam === 'One')) &&
+      gameOverState
     ) {
       toast({
         title: 'Your team lost!',
@@ -211,8 +234,8 @@ export default function CardGameViews({
         isClosable: true,
       });
     } else if (
-      ((isTeamOne && isGameOver.team === 'One') || (!isTeamOne && isGameOver.team === 'Two')) &&
-      isGameOver.state
+      ((isTeamOne && gameOverTeam === 'One') || (!isTeamOne && gameOverTeam === 'Two')) &&
+      gameOverState
     ) {
       toast({
         title: 'Your team won!',
@@ -224,7 +247,9 @@ export default function CardGameViews({
     }
     return (
       <div className='App' hidden={hidden}>
-        <ModalHeader hidden={!isTeamOne}>Your Team: Blue Team </ModalHeader>
+        <ModalHeader hidden={!isTeamOne}>
+          Your Team: Blue Team and teamCards = {controller.teamOneWordsRemaining}
+        </ModalHeader>
         <ModalHeader hidden={isTeamOne}>Your Team: Red Team </ModalHeader>
         <ModalHeader>Current Turn: {currentTurn} </ModalHeader>
         <Wrap>
@@ -252,8 +277,8 @@ export default function CardGameViews({
       }}>
       <ModalContent>
         <ModalCloseButton />
-        <OperativeView hidden={isSpymaster || isGameOver.state} />
-        <SpyMasterView hidden={!isSpymaster || isGameOver.state} />
+        <OperativeView hidden={isSpymaster || gameOverState} />
+        <SpyMasterView hidden={!isSpymaster || gameOverState} />
       </ModalContent>
     </Modal>
   );

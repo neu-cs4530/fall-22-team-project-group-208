@@ -568,6 +568,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     teamTwoWordsRemaining: number;
     playerCount: number;
     board: GameCard[];
+    isGameOver: { state: boolean; team: string };
   }) {
     await this._townsService.createCodenamesArea(this.townID, this.sessionToken, newArea);
   }

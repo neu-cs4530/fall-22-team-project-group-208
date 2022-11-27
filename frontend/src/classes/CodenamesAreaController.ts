@@ -197,7 +197,8 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     const wordBoard: string[] = this._board.map(card => card.name);
     const guessCondition = (word: string) => word === guess;
     const guessIndex: number = wordBoard.findIndex(guessCondition);
-    const guessCard: GameCard = this._board[guessIndex];
+    const newBoard: GameCard[] = Object.assign([], this._board);
+    const guessCard: GameCard = newBoard[guessIndex];
 
     if (guessIndex === -1) {
       // Theoretically the first two errors should never occur, but it is here for debugging purposes
@@ -206,8 +207,12 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     if (!(this._turn === 'Op1' || this._turn === 'Op2')) {
       throw new Error('It is not the proper turn to make a guess');
     }
+
+    //this._board[guessIndex].guessed = true;
     guessCard.guessed = true;
-    this.emit('cardChange', this._board);
+    //this.emit('cardChange', newBoard);
+    this.board = newBoard;
+    //this.emit('cardChange', this._board);
     if (guessCard.team === 'One') {
       this._teamOneWordsRemaining -= 1;
       if (this._turn !== 'Op1') {
@@ -377,6 +382,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   }
 
   public set board(newBoard: GameCard[]) {
+    //this._board.forEach(card => card.color)
     if (this._board !== newBoard) {
       this._board = newBoard;
       this.emit('cardChange', newBoard);
