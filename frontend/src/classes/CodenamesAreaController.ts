@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import TypedEmitter from 'typed-emitter';
 import PlayerController from './PlayerController';
 import { CodenamesArea as CodenamesAreaModel, GameCard } from '../types/CoveyTownSocket';
-import { threadId } from 'worker_threads';
 
 /**
  * The events that the CodenamesAreaController emits to subscribers. These events

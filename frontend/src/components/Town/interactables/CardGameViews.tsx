@@ -98,8 +98,11 @@ export default function CardGameViews({
           borderRadius='lg'
           overflow='hidden'
           borderColor='gray'
-          color={card.color}>
-          <Heading as='h4'>{card.name}</Heading>
+          color={card.color}
+          boxSize='200'
+          height={75}
+          justifyContent='center'>
+          {card.name}
         </Box>
         <Box
           hidden={!card.guessed}
@@ -162,8 +165,7 @@ export default function CardGameViews({
               <SpyMasterCardView card={eachCard} />
             </WrapItem>
           ))}
-        </Wrap>
-        <Wrap>
+          <Wrap></Wrap>
           <Input
             value={hint}
             onChange={event => setHint(event.target.value)}
@@ -239,35 +241,9 @@ export default function CardGameViews({
     );
   }
 
-  // function EndGameView({
-  //   winningState,
-  // }: {
-  //   winningState: { state: boolean; team: string };
-  // }): JSX.Element {
-  //   return (
-  //     <div className='App'>
-  //       <ModalBody
-  //         hidden={
-  //           (isTeamOne && winningState.team === 'Two') ||
-  //           (!isTeamOne && winningState.team === 'One') ||
-  //           !winningState.state
-  //         }>
-  //         Game Over: Your team won!
-  //       </ModalBody>
-  //       <ModalBody
-  //         hidden={
-  //           (isTeamOne && winningState.team === 'One') ||
-  //           (!isTeamOne && winningState.team === 'Two') ||
-  //           !winningState.state
-  //         }>
-  //         Game Over: Your team lost!
-  //       </ModalBody>
-  //     </div>
-  //   );
-  // }
-
   return (
     <Modal
+      size='6xl'
       isOpen={isOpen}
       onClose={() => {
         controller.removePlayer(ourPlayer);
@@ -278,7 +254,6 @@ export default function CardGameViews({
         <ModalCloseButton />
         <OperativeView hidden={isSpymaster || isGameOver.state} />
         <SpyMasterView hidden={!isSpymaster || isGameOver.state} />
-        {/* <EndGameView winningState={isGameOver} /> */}
       </ModalContent>
     </Modal>
   );
