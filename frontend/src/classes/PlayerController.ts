@@ -20,11 +20,14 @@ export default class PlayerController extends (EventEmitter as new () => TypedEm
 
   public gameObjects?: PlayerGameObjects;
 
+  private _codenamesWins: number;
+
   constructor(id: string, userName: string, location: PlayerLocation) {
     super();
     this._id = id;
     this._userName = userName;
     this._location = location;
+    this._codenamesWins = 0;
   }
 
   set location(newLocation: PlayerLocation) {
@@ -43,6 +46,14 @@ export default class PlayerController extends (EventEmitter as new () => TypedEm
 
   get id(): string {
     return this._id;
+  }
+
+  get codenamesWins() {
+    return this._codenamesWins;
+  }
+
+  public set codenamesWins(newWin: number) {
+    this._codenamesWins = newWin;
   }
 
   toPlayerModel(): PlayerModel {

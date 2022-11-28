@@ -96,6 +96,13 @@ export default function CardGameViews({
     gameOverTeam,
   ]);
 
+  if (
+    gameOverState &&
+    ((gameOverTeam === 'One' && isTeamOne) || (gameOverTeam === 'Two' && !isTeamOne))
+  ) {
+    ourPlayer.codenamesWins += 1;
+  }
+
   /* closes screen when exit is pressed */
   const closeModal = useCallback(() => {
     if (controller) {
@@ -103,8 +110,6 @@ export default function CardGameViews({
       townController.unPause();
     }
   }, [codenamesArea, controller, townController]);
-
-  const toast = useToast();
 
   function SpyMasterCardView({ card }: { card: GameCard }) {
     return (

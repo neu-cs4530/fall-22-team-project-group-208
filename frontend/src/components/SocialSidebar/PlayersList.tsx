@@ -29,6 +29,7 @@ export default function PlayersInTownList(): JSX.Element {
         {sorted.map(player => (
           <ListItem key={player.id}>
             <PlayerName player={player} />
+            <div> | # code names wins: {player.codenamesWins}</div>
           </ListItem>
         ))}
       </OrderedList>
