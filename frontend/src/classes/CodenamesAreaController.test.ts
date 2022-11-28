@@ -1,4 +1,3 @@
-import { executionAsyncId } from 'async_hooks';
 import { mock, mockClear } from 'jest-mock-extended';
 import { nanoid } from 'nanoid';
 import { PlayerLocation, GameCard as GameCardModel } from '../types/CoveyTownSocket';
@@ -132,7 +131,7 @@ describe('[T2] CodenamesAreaController', () => {
       testArea.joinPlayer(testArea.occupants[3]);
       expect(testArea.roles.teamTwoOperative).toEqual(testArea.occupants[3].id);
     });
-    it('Emits the playerCountChange and roleChange event when assigning a role', () => {
+    it('Emits the playerCountChange and roleChange event when assigning a role and updates the model', () => {
       const newRoles = {
         teamOneSpymaster: testArea.occupants[0].id,
         teamOneOperative: undefined,
@@ -142,6 +141,18 @@ describe('[T2] CodenamesAreaController', () => {
       testArea.joinPlayer(testArea.occupants[0]);
       expect(mockListeners.playerCountChange).toBeCalledWith(1);
       expect(mockListeners.roleChange).toBeCalledWith(newRoles);
+      expect(testArea.toCodenamesAreaModel()).toEqual({
+        id: testArea.id,
+        turn: testArea.turn,
+        occupantsID: testArea.occupants.map(player => player.id),
+        roles: newRoles,
+        hint: testArea.hint,
+        teamOneWordsRemaining: testArea.teamOneWordsRemaining,
+        teamTwoWordsRemaining: testArea.teamTwoWordsRemaining,
+        playerCount: testArea.playerCount,
+        board: testArea.board,
+        isGameOver: testArea.isGameOver,
+      });
     });
     it('Does not assign a player if all roles have been assigned', () => {
       const playerLocation: PlayerLocation = {
@@ -257,6 +268,19 @@ describe('[T2] CodenamesAreaController', () => {
     it("Does not allow for a guess when it is either of the spymaster's turn", () => {
       // TODO: Not sure how to properly test this or if this is a logic we implement in the controller
       expect(true).toEqual(true);
+    });
+  });
+  describe('checkGameOver', () => {
+    it('updates the isGameOver field accordingly when a team wins', () => {
+      testArea.teamOneWordsRemaining = 0;
+      testArea.checkGameOver();
+      expect(testArea.isGameOver).toEqual({
+        state: true,
+        team: 'One',
+      });
+    });
+    it('increments the number of wins for the players on a team', () => {
+      // TODO: fill out whenever Jimmy finishes the player state feature
     });
   });
 });
