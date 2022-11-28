@@ -219,11 +219,9 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
       }
     } else if (guessCard.team === 'Bomb') {
       if (this._turn !== 'Op1') {
-        this.turn = 'Spy1';
         this.isGameOver = { state: true, team: 'One' };
       }
       if (this._turn !== 'Op2') {
-        this.turn = 'Spy2';
         this.isGameOver = { state: true, team: 'Two' };
       }
     } else {
@@ -238,14 +236,24 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     if (this._teamOneWordsRemaining == 0) {
       this.isGameOver = { state: true, team: 'One' };
       // Increment the win count of each player on team One
-      // this.occupants.find(player => player.id === this._roles.teamOneSpymaster)!.codenamesWins += 1;
-      // this.occupants.find(player => player.id === this._roles.teamOneOperative)!.codenamesWins += 1;
+      const winningSpymaster = this.occupants.find(player => player.id === this._roles.teamOneSpymaster);
+      const winningOperative = this.occupants.find(player => player.id === this._roles.teamOneOperative);
+
+      if (winningSpymaster !== undefined && winningOperative !== undefined) {
+        winningSpymaster.codenamesWins += 1;
+        winningOperative.codenamesWins += 1;
+      }
     }
     if (this._teamTwoWordsRemaining == 0) {
       this.isGameOver = { state: true, team: 'Two' };
       // Increment the win count of each player on team Two
-      // this.occupants.find(player => player.id === this._roles.teamTwoSpymaster)!.codenamesWins += 1;
-      // this.occupants.find(player => player.id === this._roles.teamTwoOperative)!.codenamesWins += 1;
+      const winningSpymaster = this.occupants.find(player => player.id === this._roles.teamTwoSpymaster);
+      const winningOperative = this.occupants.find(player => player.id === this._roles.teamTwoOperative);
+
+      if (winningSpymaster !== undefined && winningOperative !== undefined) {
+        winningSpymaster.codenamesWins += 1;
+        winningOperative.codenamesWins += 1;
+      }
     }
   }
 

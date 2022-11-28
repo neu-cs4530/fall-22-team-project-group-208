@@ -126,13 +126,6 @@ export default function CardGameViews({
     gameOverTeam,
   ]);
 
-  if (
-    gameOverState &&
-    ((gameOverTeam === 'One' && isTeamOne) || (gameOverTeam === 'Two' && !isTeamOne))
-  ) {
-    ourPlayer.codenamesWins += 1;
-  }
-
   const closeModal = useCallback(() => {
     if (controller) {
       townController.interactEnd(codenamesArea);

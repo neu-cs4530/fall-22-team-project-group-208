@@ -525,10 +525,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         }
       } else if (codenamesArea.isGameOver.team === 'Two') {
         const spymaster = codenamesArea.occupants.find(
-          player => player.id === codenamesArea.roles.teamOneSpymaster,
+          player => player.id === codenamesArea.roles.teamTwoSpymaster,
         );
         const operative = codenamesArea.occupants.find(
-          player => player.id === codenamesArea.roles.teamOneSpymaster,
+          player => player.id === codenamesArea.roles.teamTwoSpymaster,
         );
         if (spymaster !== undefined && operative !== undefined) {
           this._socket.emit(
