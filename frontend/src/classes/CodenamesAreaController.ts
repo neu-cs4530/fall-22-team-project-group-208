@@ -1,6 +1,5 @@
 import EventEmitter from 'events';
 import _ from 'lodash';
-import { useEffect, useState } from 'react';
 import TypedEmitter from 'typed-emitter';
 import PlayerController from './PlayerController';
 import { CodenamesArea as CodenamesAreaModel, GameCard } from '../types/CoveyTownSocket';
@@ -109,7 +108,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     this._teamOneWordsRemaining = 8;
     this._teamTwoWordsRemaining = 8;
     this._playerCount = 0;
-    this._board = []; // make this GameCard.intializeCards() ??
+    this._board = [];
     this._isGameOver = { state: false, team: '' };
   }
 
@@ -310,6 +309,20 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     this.emit('hintChange', newHint);
   }
 
+  // /**
+  //  *
+  //  */
+  // public resetGame() {
+  //   this.hint = { word: '', quantity: 0};
+  //   this.roles = updatedModel.roles;
+  //   this.turn = 'Spy1';
+  //   this.teamOneWordsRemaining = 8;
+  //   this.teamTwoWordsRemaining = 8;
+  //   this.playerCount = 0;
+  //   this.board = [];
+  //   this.isGameOver = {state: false};
+  // }
+
   /**
    * The ID of this Codenames area (read only)
    */
@@ -447,20 +460,4 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     this.board = updatedModel.board;
     this.isGameOver = updatedModel.isGameOver;
   }
-}
-
-/**
- * A react hook to retrieve the occupants of a ConversationAreaController, returning an array of PlayerController.
- *
- * This hook will re-render any components that use it when the set of occupants changes.
- */
-export function useCodenamesAreaOccupants(area: CodenamesAreaController): PlayerController[] {
-  const [occupants, setOccupants] = useState(area.occupants);
-  useEffect(() => {
-    area.addListener('occupantsChange', setOccupants);
-    return () => {
-      area.removeListener('occupantsChange', setOccupants);
-    };
-  }, [area]);
-  return occupants;
 }

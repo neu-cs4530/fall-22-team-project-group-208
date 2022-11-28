@@ -62,3 +62,11 @@
   height: 200px;
   width: 400px;
 }
+.padding {
+  padding: 20px;
+}
+.input-style {
+  justify-content: flex;
+  padding-left: 175px;
+  padding-bottom: 20px;
+}

@@ -825,32 +825,6 @@ export function useActiveConversationAreas(): ConversationAreaController[] {
 }
 
 /**
- * A react hook to retrieve the active conversation areas. This hook will re-render any components
- * that use it when the set of conversation areas changes. It does *not* re-render its dependent components
- * when the state of one of those areas changes - @see useCodednamesAreaOccupants
- *
- * This hook relies on the TownControllerContext.
- *
- * @returns the list of codenames area controllers that are currently "active"
- */
-export function useActiveCodenamesAreas(): CodenamesAreaController[] {
-  const townController = useTownController();
-  const [codenamesAreas, setCodenamesAreas] = useState<CodenamesAreaController[]>(
-    townController.codenamesAreas.filter(eachArea => !eachArea.isEmpty()),
-  );
-  useEffect(() => {
-    const updater = (allAreas: CodenamesAreaController[]) => {
-      setCodenamesAreas(allAreas.filter(eachArea => !eachArea.isEmpty()));
-    };
-    townController.addListener('codenamesAreasChanged', updater);
-    return () => {
-      townController.removeListener('codenamesAreasChanged', updater);
-    };
-  }, [townController, setCodenamesAreas]);
-  return codenamesAreas;
-}
-
-/**
  * A react hook to return the PlayerController's corresponding to each player in the town.
  *
  * This hook will cause components that use it to re-render when the set of players in the town changes.

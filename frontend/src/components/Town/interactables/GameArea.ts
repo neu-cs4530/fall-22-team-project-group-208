@@ -16,6 +16,12 @@ export default class GameArea extends Interactable {
       `Press space to start the codenames game`,
       { color: '#FFFFFF', backgroundColor: '#000000' },
     );
+    this.scene.add.text(
+      this.x - this.displayWidth / 2,
+      this.y + this.displayHeight / 2,
+      'Codenames Area',
+      { color: '#000000' },
+    );
     this._labelText.setVisible(false);
     this.townController.getCodenamesAreaController(this);
     this.setDepth(-1);

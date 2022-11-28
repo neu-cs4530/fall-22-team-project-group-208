@@ -1,14 +1,11 @@
 import {
-  Box,
   Button,
-  Heading,
   Input,
   Modal,
   ModalBody,
   ModalCloseButton,
   ModalContent,
   ModalHeader,
-  useToast,
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
@@ -63,6 +60,26 @@ export default function CardGameViews({
     }
   }
 
+  function getDisplayTurn(): string {
+    if (currentTurn === 'Spy1') {
+      return 'Blue Team Spymaster';
+    } else if (currentTurn === 'Spy2') {
+      return 'Red Team Spymaster';
+    } else if (currentTurn === 'Op1') {
+      return 'Blue Team Operative';
+    } else {
+      return 'Red Team Operative';
+    }
+  }
+
+  function teamColor(): string {
+    if (isTeamOne) {
+      return 'blue';
+    } else {
+      return 'red';
+    }
+  }
+
   useEffect(() => {
     const updateIsGameOver = (newGameOverState: { state: boolean; team: string }) => {
       if (newGameOverState.state !== gameOverState) {
@@ -114,30 +131,28 @@ export default function CardGameViews({
   function SpyMasterCardView({ card }: { card: GameCard }) {
     return (
       <>
-        <Box
+        <Button
           hidden={card.guessed}
           borderWidth='1px'
           borderRadius='lg'
           overflow='hidden'
-          borderColor='gray'
           color={card.color}
-          boxSize='200'
+          boxSize='215'
           height={75}
           justifyContent='center'>
           {card.name}
-        </Box>
-        <Box
+        </Button>
+        <Button
           hidden={!card.guessed}
           borderWidth='1px'
           borderRadius='lg'
           overflow='hidden'
           color={card.color}
-          boxSize='200'
+          boxSize='215'
           height={75}
-          borderColor={card.color}
           background={'lightgreen'}>
           {card.name}
-        </Box>
+        </Button>
       </>
     );
   }
@@ -150,8 +165,8 @@ export default function CardGameViews({
           borderWidth='1px'
           borderRadius='lg'
           overflow='hidden'
-          color='gray'
-          boxSize='200'
+          color='black'
+          boxSize='215'
           height={75}
           name={card.name}
           disabled={isDisabled()}
@@ -168,7 +183,7 @@ export default function CardGameViews({
           borderRadius='lg'
           overflow='hidden'
           color={card.color}
-          boxSize='200'
+          boxSize='215'
           height={75}
           name={card.name}
           disabled={card.guessed}>
@@ -183,23 +198,30 @@ export default function CardGameViews({
     const [hintAmount, setHintAmount] = useState<string>('0');
     return (
       <div className='App' hidden={hidden}>
-        <ModalHeader hidden={!isTeamOne}>Your Team: Blue Team </ModalHeader>
-        <ModalHeader hidden={isTeamOne}>Your Team: Red Team </ModalHeader>
-        <ModalHeader>Current Turn: {currentTurn} </ModalHeader>
-        <Wrap>
+        <ModalHeader hidden={!isTeamOne} color={teamColor()}>
+          Your Team: Blue Team{' '}
+        </ModalHeader>
+        <ModalHeader hidden={isTeamOne} color={teamColor()}>
+          Your Team: Red Team{' '}
+        </ModalHeader>
+        <ModalHeader>Current Turn: {getDisplayTurn()} </ModalHeader>
+        <Wrap className='padding'>
           {currentCards.map(eachCard => (
             <WrapItem key={eachCard.name}>
               <SpyMasterCardView card={eachCard} />
             </WrapItem>
           ))}
-          <Wrap></Wrap>
+        </Wrap>
+        <Wrap className='input-style'>
           <Input
+            width={500}
             value={hint}
             onChange={event => setHint(event.target.value)}
             name='Hint'
             placeholder='Hint'
           />
           <Input
+            width={40}
             value={hintAmount}
             type='number'
             onChange={event => setHintAmount(event.target.value)}
@@ -207,7 +229,7 @@ export default function CardGameViews({
             placeholder='Amount'
           />
           <Button
-            colorScheme='blue'
+            colorScheme={teamColor()}
             type='submit'
             disabled={isDisabled()}
             onClick={async () => {
@@ -220,40 +242,24 @@ export default function CardGameViews({
             Submit Hint
           </Button>
         </Wrap>
+        <ModalBody>
+          Hint: {currentHint.word} #: {currentHint.quantity}
+        </ModalBody>
       </div>
     );
   }
 
   function OperativeView({ hidden }: { hidden: boolean }): JSX.Element {
-    // if (
-    //   ((isTeamOne && gameOverTeam === 'Two') || (!isTeamOne && gameOverTeam === 'One')) &&
-    //   gameOverState
-    // ) {
-    //   toast({
-    //     title: 'Your team lost!',
-    //     description: 'Leave the area and rejoin to start a new game.',
-    //     status: 'error',
-    //     duration: 9000,
-    //     isClosable: true,
-    //   });
-    // } else if (
-    //   ((isTeamOne && gameOverTeam === 'One') || (!isTeamOne && gameOverTeam === 'Two')) &&
-    //   gameOverState
-    // ) {
-    //   toast({
-    //     title: 'Your team won!',
-    //     description: 'Leave the area and rejoin to start a new game.',
-    //     status: 'success',
-    //     duration: 9000,
-    //     isClosable: true,
-    //   });
-    // }
     return (
       <div className='App' hidden={hidden}>
-        <ModalHeader hidden={!isTeamOne}>Your Team: Blue Team </ModalHeader>
-        <ModalHeader hidden={isTeamOne}>Your Team: Red Team </ModalHeader>
-        <ModalHeader>Current Turn: {currentTurn} </ModalHeader>
-        <Wrap>
+        <ModalHeader hidden={!isTeamOne} color={teamColor()}>
+          Your Team: Blue Team{' '}
+        </ModalHeader>
+        <ModalHeader hidden={isTeamOne} color={teamColor()}>
+          Your Team: Red Team{' '}
+        </ModalHeader>
+        <ModalHeader>Current Turn: {getDisplayTurn()} </ModalHeader>
+        <Wrap className='padding'>
           {currentCards.map(eachCard => (
             <WrapItem key={eachCard.name}>
               <OperativeCardView card={eachCard} />
@@ -284,7 +290,7 @@ export default function CardGameViews({
             (!isTeamOne && gameOverTeam === 'One') ||
             !gameOverState
           }>
-          Your team won! Close out of this window to start a new game.
+          Your team won! Leave the area and rejoin to start a new game.
         </ModalBody>
         <ModalBody
           hidden={
@@ -292,7 +298,7 @@ export default function CardGameViews({
             (!isTeamOne && gameOverTeam === 'Two') ||
             !gameOverState
           }>
-          Your team lost! Close out of this window to start a new game.
+          Your team lost! Leave the area and rejoin to start a new game.
         </ModalBody>
         <OperativeView hidden={isSpymaster || gameOverState} />
         <SpyMasterView hidden={!isSpymaster || gameOverState} />

@@ -163,10 +163,15 @@ export class TownsController extends Controller {
   }
 
   /**
+   * Creates a codenames area in a given town
    *
-   * @param townID
-   * @param sessionToken
-   * @param requestBody
+   * @param townID ID of the town in which to create the new codenames area
+   * @param sessionToken session token of the player making the request, must
+   *        match the session token returned when the player joined the town
+   * @param requestBody The new codenames area to create
+   *
+   * @throws InvalidParametersError if the session token is not valid, or if the
+   *          codenames area could not be created
    */
   @Post('{townID}/codenamesArea')
   @Response<InvalidParametersError>(400, 'Invalid values specified')

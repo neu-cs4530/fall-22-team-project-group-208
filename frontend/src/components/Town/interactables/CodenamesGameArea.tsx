@@ -32,6 +32,7 @@ export function CodenamesGameArea({
   const [joinedGame, setJoinedGame] = useState<boolean>(false);
   const [playersInGame, setPlayersInGame] = useState<number>(codenamesAreaController.playerCount);
   const isOpen = codenamesArea !== undefined;
+  const isGameOver = codenamesAreaController.isGameOver.state;
 
   useEffect(() => {
     if (codenamesArea) {
@@ -141,10 +142,7 @@ export function CodenamesGameArea({
    * add an else if checking if game is full
    */
   function joinCodenames() {
-    if (
-      codenamesAreaController.occupants.length === 0 ||
-      codenamesAreaController.isGameOver.state
-    ) {
+    if (codenamesAreaController.occupants.length === 0 || isGameOver === true) {
       createCodenames();
     } else {
       toast({
