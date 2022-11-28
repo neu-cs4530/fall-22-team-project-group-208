@@ -57,7 +57,7 @@ export default class PlayerController extends (EventEmitter as new () => TypedEm
   }
 
   toPlayerModel(): PlayerModel {
-    return { id: this.id, userName: this.userName, location: this.location };
+    return { id: this.id, userName: this.userName, location: this.location, codenamesWins: this.codenamesWins };
   }
 
   private _updateGameComponentLocation() {

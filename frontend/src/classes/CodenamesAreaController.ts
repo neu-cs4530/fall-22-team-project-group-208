@@ -239,10 +239,14 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     if (this._teamOneWordsRemaining == 0) {
       this.isGameOver = { state: true, team: 'One' };
       // Increment the win count of each player on team One
+      this.occupants.find(player => player.id === this._roles.teamOneSpymaster)!.codenamesWins += 1;
+      this.occupants.find(player => player.id === this._roles.teamOneOperative)!.codenamesWins += 1;
     }
     if (this._teamTwoWordsRemaining == 0) {
       this.isGameOver = { state: true, team: 'Two' };
       // Increment the win count of each player on team Two
+      this.occupants.find(player => player.id === this._roles.teamTwoSpymaster)!.codenamesWins += 1;
+      this.occupants.find(player => player.id === this._roles.teamTwoOperative)!.codenamesWins += 1;
     }
   }
 

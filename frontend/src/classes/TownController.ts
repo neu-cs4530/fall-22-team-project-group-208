@@ -464,6 +464,21 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         }
       }
     });
+    /**
+     * When the score of two players change as a result of a recently concluded game, push the new score into the
+     * player whose points they belong to. If the player is not present, do not update their score.
+     */
+    this._socket.on('playerScoreUpdated', (spymaster, operative) => {
+      const spymasterToUpdate = this.players.find(eachPlayer => eachPlayer.id === spymaster.id);
+      const operativeToUpdate = this.players.find(eachPlayer => eachPlayer.id === operative.id);
+
+      if (spymasterToUpdate) {
+        spymasterToUpdate.codenamesWins = spymaster.codenamesWins;
+      }
+      if (operativeToUpdate) {
+        operativeToUpdate.codenamesWins = operative.codenamesWins;
+      }
+    });
   }
 
   /**
@@ -481,6 +496,35 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     assert(ourPlayer);
     ourPlayer.location = newLocation;
     this.emit('playerMoved', ourPlayer);
+  }
+
+  /**
+   * Emit a movement event for the winners of the current game in the area, updating the state locally, and then notifying the 
+   * townService that the score for the winners has changed.
+   * 
+   * The townService is responsible for detecting whether or not a score change actually occurred.
+   *
+   * No event is emitted if there is either no winner, or a player is missing.
+   *
+   * @param codenamesArea the CodenamesArea containing the winning players
+   */
+  public emitPlayerScoreChange(codenamesArea: CodenamesAreaController) {
+    if (codenamesArea.isGameOver.state === true && codenamesArea.isGameOver.team !== '') {
+      if (codenamesArea.isGameOver.team === 'One') {
+        const spymaster = codenamesArea.occupants.find(player => player.id === codenamesArea.roles.teamOneSpymaster);
+        const operative = codenamesArea.occupants.find(player => player.id === codenamesArea.roles.teamOneSpymaster);
+        if (spymaster !== undefined && operative !== undefined) {
+          this._socket.emit('playerScoreUpdate', spymaster.toPlayerModel(), operative.toPlayerModel());
+        }
+      }
+      else if (codenamesArea.isGameOver.team === 'Two') {
+        const spymaster = codenamesArea.occupants.find(player => player.id === codenamesArea.roles.teamOneSpymaster);
+        const operative = codenamesArea.occupants.find(player => player.id === codenamesArea.roles.teamOneSpymaster);
+        if (spymaster !== undefined && operative !== undefined) {
+          this._socket.emit('playerScoreUpdate', spymaster.toPlayerModel(), operative.toPlayerModel());
+        }
+      }
+    }
   }
 
   /**

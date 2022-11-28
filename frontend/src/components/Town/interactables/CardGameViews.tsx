@@ -174,6 +174,7 @@ export default function CardGameViews({
             controller.makeGuess(card.name);
             console.log(controller);
             townController.emitCodenamesAreaUpdate(controller);
+            townController.emitPlayerScoreChange(controller);
           }}>
           {card.name}
         </Button>
