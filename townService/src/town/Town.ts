@@ -15,6 +15,7 @@ import {
   SocketData,
   ViewingArea as ViewingAreaModel,
   CodenamesArea as CodenamesAreaModel,
+  Player as PlayerModel
 } from '../types/CoveyTownSocket';
 import ConversationArea from './ConversationArea';
 import InteractableArea from './InteractableArea';
@@ -166,6 +167,24 @@ export default class Town {
         }
       }
     });
+    
+    /**
+     * Set up a listener to listen to playerScoreUpdate events, where two players have their scores updated on the backend and across all clients.
+     * 
+     * If the scores are different from what's on the townService's player, update the townService and emit the update to all other clients.
+     */
+    socket.on('playerScoreUpdate', (spymaster: PlayerModel, operative: PlayerModel) => {
+      const backendSpymaster = this._players.find(player => player.id === spymaster.id);
+      const backendOperative = this._players.find(player => player.id === operative.id);
+
+      if (backendSpymaster !== undefined && backendOperative !== undefined) {
+        backendSpymaster.codenamesWins = spymaster.codenamesWins;
+        backendOperative.codenamesWins = spymaster.codenamesWins;
+        this._broadcastEmitter.emit('playerScoreUpdated', spymaster, operative);
+      }
+
+
+    })
     return newPlayer;
   }
 

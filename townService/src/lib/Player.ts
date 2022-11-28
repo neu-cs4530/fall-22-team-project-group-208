@@ -23,6 +23,9 @@ export default class Player {
   /** A special town emitter that will emit events to the entire town BUT NOT to this player */
   public readonly townEmitter: TownEmitter;
 
+  // The amount of codenames wins the player has
+  private _codenamesWins: number;
+
   constructor(userName: string, townEmitter: TownEmitter) {
     this.location = {
       x: 0,
@@ -34,6 +37,7 @@ export default class Player {
     this._id = nanoid();
     this._sessionToken = nanoid();
     this.townEmitter = townEmitter;
+    this._codenamesWins = 0;
   }
 
   get userName(): string {
@@ -56,11 +60,20 @@ export default class Player {
     return this._sessionToken;
   }
 
+  get codenamesWins(): number {
+    return this._codenamesWins;
+  }
+
+  set codenamesWins(wins: number) {
+    this._codenamesWins = wins;
+  }
+
   toPlayerModel(): PlayerModel {
     return {
       id: this._id,
       location: this.location,
       userName: this._userName,
+      codenamesWins: this._codenamesWins,
     };
   }
 }
