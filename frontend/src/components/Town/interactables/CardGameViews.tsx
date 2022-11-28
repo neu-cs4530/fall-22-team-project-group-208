@@ -16,6 +16,19 @@ import TownController from '../../../classes/TownController';
 import CodenamesAreaInteractable from './GameArea';
 import { GameCard } from '../../../types/CoveyTownSocket';
 
+/**
+ * The CardGameViews displays either a Spymaster or Field Operative game board depending on the role of ourPlayer. The Spymaster can see the color of all the cards, while the Field Operative cannot see colors of cards that have not been guessed.
+ *
+ * While the game is not over, when it is ourPlayer's turn, the buttons are enabled to make a card guess if ourPlayer is the field operative, or the submit hint button is enabled to give a hint if ourPlayer is the Spymaster. If it is not our turn, all buttons are disabled.
+ *
+ * If ourPlayer is a field operative and it is our turn, once ourPlayer selects a card to guess, the card will be revealed to all players in the game on their game board. The turn will change if the card was not that of ourPlayer's team card, or it will still be our turn if the card was one of ourPlayer's team card.
+ *
+ * If ourPlayer is a spymaster and it is our turn, once ourPlayer submits a hint, the hint will be shown to all players in the game on their game board. The turn will change.
+ *
+ * If the game is over, an end game screen will appear. At this point, the player must close out of the popup, leave the codenames area (stop interacting with it), and rejoin the area to start a new codenames game.
+ *
+ * @param props: the controller for the codenames area that is being interacted with, the codenames area interactable that is being interacted with, our player in the town, and the town controller
+ */
 export default function CardGameViews({
   controller,
   codenamesArea,
@@ -120,7 +133,6 @@ export default function CardGameViews({
     ourPlayer.codenamesWins += 1;
   }
 
-  /* closes screen when exit is pressed */
   const closeModal = useCallback(() => {
     if (controller) {
       townController.interactEnd(codenamesArea);
@@ -172,7 +184,6 @@ export default function CardGameViews({
           disabled={isDisabled()}
           onClick={() => {
             controller.makeGuess(card.name);
-            console.log(controller);
             townController.emitCodenamesAreaUpdate(controller);
             townController.emitPlayerScoreChange(controller);
           }}>
@@ -238,7 +249,6 @@ export default function CardGameViews({
               townController.emitCodenamesAreaUpdate(controller);
               setHint('');
               setHintAmount('0');
-              console.log(controller);
             }}>
             Submit Hint
           </Button>

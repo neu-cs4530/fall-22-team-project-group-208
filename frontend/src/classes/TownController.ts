@@ -434,7 +434,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
      * events (@see ViewingAreaController and @see ConversationAreaController)
      */
     this._socket.on('interactableUpdate', interactable => {
-      console.log(interactable);
       if (isConversationArea(interactable)) {
         const updatedConversationArea = this.conversationAreas.find(c => c.id === interactable.id);
         if (updatedConversationArea) {
@@ -499,9 +498,9 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   }
 
   /**
-   * Emit a movement event for the winners of the current game in the area, updating the state locally, and then notifying the 
+   * Emit a movement event for the winners of the current game in the area, updating the state locally, and then notifying the
    * townService that the score for the winners has changed.
-   * 
+   *
    * The townService is responsible for detecting whether or not a score change actually occurred.
    *
    * No event is emitted if there is either no winner, or a player is missing.
@@ -511,17 +510,32 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   public emitPlayerScoreChange(codenamesArea: CodenamesAreaController) {
     if (codenamesArea.isGameOver.state === true && codenamesArea.isGameOver.team !== '') {
       if (codenamesArea.isGameOver.team === 'One') {
-        const spymaster = codenamesArea.occupants.find(player => player.id === codenamesArea.roles.teamOneSpymaster);
-        const operative = codenamesArea.occupants.find(player => player.id === codenamesArea.roles.teamOneSpymaster);
+        const spymaster = codenamesArea.occupants.find(
+          player => player.id === codenamesArea.roles.teamOneSpymaster,
+        );
+        const operative = codenamesArea.occupants.find(
+          player => player.id === codenamesArea.roles.teamOneSpymaster,
+        );
         if (spymaster !== undefined && operative !== undefined) {
-          this._socket.emit('playerScoreUpdate', spymaster.toPlayerModel(), operative.toPlayerModel());
+          this._socket.emit(
+            'playerScoreUpdate',
+            spymaster.toPlayerModel(),
+            operative.toPlayerModel(),
+          );
         }
-      }
-      else if (codenamesArea.isGameOver.team === 'Two') {
-        const spymaster = codenamesArea.occupants.find(player => player.id === codenamesArea.roles.teamOneSpymaster);
-        const operative = codenamesArea.occupants.find(player => player.id === codenamesArea.roles.teamOneSpymaster);
+      } else if (codenamesArea.isGameOver.team === 'Two') {
+        const spymaster = codenamesArea.occupants.find(
+          player => player.id === codenamesArea.roles.teamOneSpymaster,
+        );
+        const operative = codenamesArea.occupants.find(
+          player => player.id === codenamesArea.roles.teamOneSpymaster,
+        );
         if (spymaster !== undefined && operative !== undefined) {
-          this._socket.emit('playerScoreUpdate', spymaster.toPlayerModel(), operative.toPlayerModel());
+          this._socket.emit(
+            'playerScoreUpdate',
+            spymaster.toPlayerModel(),
+            operative.toPlayerModel(),
+          );
         }
       }
     }
@@ -733,10 +747,11 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   }
 
   /**
-   *
+   * Emit a codenames area update to the townService
+   * @param codenamesArea The Codenames Area Controller that is updated and should be emitted
+   *    with the event
    */
   public emitCodenamesAreaUpdate(codenamesArea: CodenamesAreaController) {
-    console.log(codenamesArea.playerCount);
     this._socket.emit('interactableUpdate', codenamesArea.toCodenamesAreaModel());
   }
 
@@ -826,7 +841,7 @@ export function useViewingAreaController(viewingAreaID: string): ViewingAreaCont
  *
  * This hook relies on the TownControllerContext.
  *
- * @param codenamesAreaID The ID of the viewing area to retrieve the controller for
+ * @param codenamesAreaID The ID of the codenames area to retrieve the controller for
  *
  * @throws Error if there is no codenames area controller matching the specifeid ID
  */

@@ -3,8 +3,6 @@ import Interactable, { KnownInteractableTypes } from '../Interactable';
 export default class GameArea extends Interactable {
   private _labelText?: Phaser.GameObjects.Text;
 
-  private _isInteracting = false;
-
   addedToScene() {
     super.addedToScene();
     this.setTintFill();
@@ -43,7 +41,6 @@ export default class GameArea extends Interactable {
 
   interact(): void {
     this._labelText?.setVisible(false);
-    this._isInteracting = true;
   }
 
   getType(): KnownInteractableTypes {

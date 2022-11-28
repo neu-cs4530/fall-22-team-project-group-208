@@ -10,7 +10,7 @@ import { CodenamesArea as CodenamesAreaModel, GameCard } from '../types/CoveyTow
  */
 export type CodenamesAreaEvents = {
   /**
-   * An event that indicates the players in the Codenames Area has changed.
+   * An even that indicates the occupants in this area has changed.
    */
   occupantsChange: (newOccupants: PlayerController[]) => void;
   /**
@@ -35,19 +35,18 @@ export type CodenamesAreaEvents = {
    */
   hintChange: (newHint: { word: string; quantity: string }) => void;
   /**
-   *
+   * An event that indicates the number of players in the game has changed.
    */
   playerCountChange: (newCount: number) => void;
   /**
-   *
+   * An event that indicates the game over state has changed.
    */
   isGameOverChange: (newState: { state: boolean; team: string }) => void;
 };
 
 /**
  * A CodenamesAreaController manages the local behavior of a codenames area in the frontend,
- * implementing the logic to bridge between the townService's interpretation of codenames areas and the
- * frontend's. The CodenamesAreaController emits events when the codenames area changes.
+ * implementing the logic to bridge between the townService's interpretation of codenames areas and the frontend's. The CodenamesAreaController emits events when the codenames area changes.
  */
 export default class CodenamesAreaController extends (EventEmitter as new () => TypedEmitter<CodenamesAreaEvents>) {
   private _occupants: PlayerController[] = [];
@@ -91,7 +90,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
 
   /**
    * Create a new CodenamesAreaController
-   * @param id
+   * @param id the name of the codenames area
    */
   constructor(id: string) {
     super();
@@ -220,11 +219,11 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
       }
     } else if (guessCard.team === 'Bomb') {
       if (this._turn !== 'Op1') {
-        this.turn = 'Spy1'; // it does not really matter what this turn becomes
+        this.turn = 'Spy1';
         this.isGameOver = { state: true, team: 'One' };
       }
       if (this._turn !== 'Op2') {
-        this.turn = 'Spy2'; // it does not really matter what this turn becomes
+        this.turn = 'Spy2';
         this.isGameOver = { state: true, team: 'Two' };
       }
     } else {
@@ -313,20 +312,6 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     this.emit('hintChange', newHint);
   }
 
-  // /**
-  //  *
-  //  */
-  // public resetGame() {
-  //   this.hint = { word: '', quantity: 0};
-  //   this.roles = updatedModel.roles;
-  //   this.turn = 'Spy1';
-  //   this.teamOneWordsRemaining = 8;
-  //   this.teamTwoWordsRemaining = 8;
-  //   this.playerCount = 0;
-  //   this.board = [];
-  //   this.isGameOver = {state: false};
-  // }
-
   /**
    * The ID of this Codenames area (read only)
    */
@@ -411,13 +396,6 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   }
 
   /**
-   * A codenames area is empty if there are no occupants in it.
-   */
-  isEmpty(): boolean {
-    return this._occupants.length === 0;
-  }
-
-  /**
    * Return a representation of this CodenamesnAreaController that matches the
    * townService's representation and is suitable for transmitting over the network.
    */
@@ -452,7 +430,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   }
 
   /**
-   *
+   * Updates the controller with the values from a given codenames area interactable.
    */
   public updateFrom(updatedModel: CodenamesAreaModel): void {
     this.hint = updatedModel.hint;
