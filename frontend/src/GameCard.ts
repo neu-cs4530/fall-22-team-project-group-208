@@ -8,39 +8,39 @@ export const POSSIBLE_WORDS: string[] = ["AFRICA","AGENT","AIR","ALIEN","ALPS","
  * A class to represent a game card for the codenames game board. There is a static function that will create a random game board of 25 of these game cards.
  */
 export class GameCard {
-  public _name: string;
+  public name: string;
 
-  public _team: string;
+  public team: string;
 
-  public _guessed: boolean;
+  public guessed: boolean;
 
-  public _color: string;
+  public color: string;
 
   public constructor(name: string, team: string, color: string) {
-    this._name = name;
-    this._team = team;
-    this._guessed = false;
-    this._color = color;
+    this.name = name;
+    this.team = team;
+    this.guessed = false;
+    this.color = color;
   }
 
   /** Function to determine if a card is assigned to the Blue Team */
   public isTeamOne(): boolean {
-    return this._team === 'One';
+    return this.team === 'One';
   }
 
   /** Function to determine if a card is assigned to the Red Team */
   public isTeamTwo(): boolean {
-    return this._team === 'Two';
+    return this.team === 'Two';
   }
 
   /** Function to determine if a card is assigned as the Bomb */
   public isBomb(): boolean {
-    return this._team === 'Bomb';
+    return this.team === 'Bomb';
   }
 
   /** Function to determine if a card is assigned to neutral */
   public isNeutral(): boolean {
-    return this._team === 'Neutral';
+    return this.team === 'Neutral';
   }
 
   /**
