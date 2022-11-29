@@ -11,14 +11,13 @@ import {
 import {
   ChatMessage,
   ConversationArea as ConversationAreaModel,
-  CodenamesArea as CodenamesAreaModel,
   CoveyTownSocket,
   Player as PlayerModel,
   PlayerLocation,
   ServerToClientEvents,
   TownJoinResponse,
 } from '../types/CoveyTownSocket';
-import { isConversationArea, isViewingArea, isCodenamesArea } from '../types/TypeUtils';
+import { isConversationArea, isViewingArea } from '../types/TypeUtils';
 import PlayerController from './PlayerController';
 import TownController, { TownEvents } from './TownController';
 import ViewingAreaController from './ViewingAreaController';
@@ -401,119 +400,6 @@ describe('TownController', () => {
           viewingArea.video = nanoid();
           eventListener(viewingArea);
           expect(listener).toBeCalledWith(viewingArea.video);
-        });
-      });
-      describe('Codenames Area Updates', () => {
-        function getCodenamesArea() {
-          return {
-            ...(townJoinResponse.interactables.find(eachInteractable =>
-              isCodenamesArea(eachInteractable),
-            ) as CodenamesAreaModel),
-          };
-        }
-        let codenamesArea: CodenamesAreaModel;
-        beforeEach(() => {
-          codenamesArea = getCodenamesArea();
-        });
-        it('Emits a roleChange event if the roles change', () => {
-          codenamesArea.roles = {
-            teamOneSpymaster: townJoinResponse.userID,
-            teamOneOperative: undefined,
-            teamTwoSpymaster: undefined,
-            teamTwoOperative: undefined,
-          };
-          //Set up a roleChange listener
-          const roleChangeListener = jest.fn();
-          const codenamesAreaController = testController.codenamesAreas.find(
-            eachArea => eachArea.id === codenamesArea.id,
-          );
-          if (!codenamesAreaController) {
-            fail('Could not find codenames area controller');
-            return;
-          }
-          codenamesAreaController.addListener('roleChange', roleChangeListener);
-
-          // Perform the update
-          const eventListener = getEventListener(mockSocket, 'interactableUpdate');
-          eventListener(codenamesArea);
-
-          expect(roleChangeListener).toBeCalledWith(codenamesArea.roles);
-        });
-        it('Emits a turnChange event if the turn changes', () => {
-          codenamesArea.turn = 'Op1';
-          //Set up a turnChange listener
-          const turnChangeListener = jest.fn();
-          const codenamesAreaController = testController.codenamesAreas.find(
-            eachArea => eachArea.id === codenamesArea.id,
-          );
-          if (!codenamesAreaController) {
-            fail('Could not find codenames area controller');
-            return;
-          }
-          codenamesAreaController.addListener('turnChange', turnChangeListener);
-
-          // Perform the update
-          const eventListener = getEventListener(mockSocket, 'interactableUpdate');
-          eventListener(codenamesArea);
-
-          expect(turnChangeListener).toBeCalledWith(codenamesArea.turn);
-        });
-        it('Emits a hintChange event if a spymaster sets a hint', () => {
-          codenamesArea.hint = { word: 'Test', quantity: '1' };
-          //Set up a hintChange listener
-          const hintChangeListener = jest.fn();
-          const codenamesAreaController = testController.codenamesAreas.find(
-            eachArea => eachArea.id === codenamesArea.id,
-          );
-          if (!codenamesAreaController) {
-            fail('Could not find codenames area controller');
-            return;
-          }
-          codenamesAreaController.addListener('hintChange', hintChangeListener);
-
-          // Perform the update
-          const eventListener = getEventListener(mockSocket, 'interactableUpdate');
-          eventListener(codenamesArea);
-
-          expect(hintChangeListener).toBeCalledWith(codenamesArea.turn);
-        });
-        it('Emits a playerCountChange event when a player joins the game', () => {
-          codenamesArea.playerCount = 1;
-          //Set up a playerCountChange listener
-          const playerCountChangeListener = jest.fn();
-          const codenamesAreaController = testController.codenamesAreas.find(
-            eachArea => eachArea.id === codenamesArea.id,
-          );
-          if (!codenamesAreaController) {
-            fail('Could not find codenames area controller');
-            return;
-          }
-          codenamesAreaController.addListener('playerCountChange', playerCountChangeListener);
-
-          // Perform the update
-          const eventListener = getEventListener(mockSocket, 'interactableUpdate');
-          eventListener(codenamesArea);
-
-          expect(playerCountChangeListener).toBeCalledWith(codenamesArea.playerCount);
-        });
-        it('Emits a isGameOverChange event when the isGameOver state changes', () => {
-          codenamesArea.isGameOver = { state: true, team: 'One' };
-          //Set up a isGameOverChange listener
-          const isGameOverChangeListener = jest.fn();
-          const codenamesAreaController = testController.codenamesAreas.find(
-            eachArea => eachArea.id === codenamesArea.id,
-          );
-          if (!codenamesAreaController) {
-            fail('Could not find codenames area controller');
-            return;
-          }
-          codenamesAreaController.addListener('isGameOverChange', isGameOverChangeListener);
-
-          // Perform the update
-          const eventListener = getEventListener(mockSocket, 'interactableUpdate');
-          eventListener(codenamesArea);
-
-          expect(isGameOverChangeListener).toBeCalledWith(codenamesArea.isGameOver);
         });
       });
     });
