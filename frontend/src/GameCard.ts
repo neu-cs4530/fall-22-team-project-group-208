@@ -7,7 +7,6 @@ export const POSSIBLE_WORDS: string[] = ["AFRICA","AGENT","AIR","ALIEN","ALPS","
 export class GameCard {
   public _name: string;
 
-  // TODO: rename team to type
   public _team: string;
 
   public _guessed: boolean;
