@@ -99,6 +99,11 @@ export interface GameCard {
   color: string;
 }
 
+export interface PlayerScoreUpdate {
+  spymaster: Player;
+  operative: Player;
+}
+
 export interface  ServerToClientEvents {
   playerMoved: (movedPlayer: Player) => void;
   playerDisconnect: (disconnectedPlayer: Player) => void;
@@ -108,12 +113,12 @@ export interface  ServerToClientEvents {
   townClosing: () => void;
   chatMessage: (message: ChatMessage) => void;
   interactableUpdate: (interactable: Interactable) => void;
-  playerScoreUpdated: (spymaster: Player, operative: Player) => void;
+  playerScoreUpdated: (update: PlayerScoreUpdate) => void;
 }
 
 export interface ClientToServerEvents {
   chatMessage: (message: ChatMessage) => void;
   playerMovement: (movementData: PlayerLocation) => void;
   interactableUpdate: (update: Interactable) => void;
-  playerScoreUpdate: (spymaster: Player, operative: Player) => void;
+  playerScoreUpdate: (update: PlayerScoreUpdate) => void;
 }

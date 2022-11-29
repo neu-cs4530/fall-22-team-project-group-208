@@ -467,15 +467,15 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
      * When the score of two players change as a result of a recently concluded game, push the new score into the
      * player whose points they belong to. If the player is not present, do not update their score.
      */
-    this._socket.on('playerScoreUpdated', (spymaster, operative) => {
-      const spymasterToUpdate = this.players.find(eachPlayer => eachPlayer.id === spymaster.id);
-      const operativeToUpdate = this.players.find(eachPlayer => eachPlayer.id === operative.id);
+    this._socket.on('playerScoreUpdated', update => {
+      const spymasterToUpdate = this.players.find(eachPlayer => eachPlayer.id === update.spymaster.id);
+      const operativeToUpdate = this.players.find(eachPlayer => eachPlayer.id === update.operative.id);
 
       if (spymasterToUpdate) {
-        spymasterToUpdate.codenamesWins = spymaster.codenamesWins;
+        spymasterToUpdate.codenamesWins = update.spymaster.codenamesWins;
       }
       if (operativeToUpdate) {
-        operativeToUpdate.codenamesWins = operative.codenamesWins;
+        operativeToUpdate.codenamesWins = update.operative.codenamesWins;
       }
     });
   }
@@ -514,13 +514,11 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
           player => player.id === codenamesArea.roles.teamOneSpymaster,
         );
         const operative = codenamesArea.occupants.find(
-          player => player.id === codenamesArea.roles.teamOneSpymaster,
+          player => player.id === codenamesArea.roles.teamOneOperative,
         );
         if (spymaster !== undefined && operative !== undefined) {
           this._socket.emit(
-            'playerScoreUpdate',
-            spymaster.toPlayerModel(),
-            operative.toPlayerModel(),
+            'playerScoreUpdate', { spymaster: spymaster.toPlayerModel(), operative: operative.toPlayerModel() }
           );
         }
       } else if (codenamesArea.isGameOver.team === 'Two') {
@@ -528,13 +526,11 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
           player => player.id === codenamesArea.roles.teamTwoSpymaster,
         );
         const operative = codenamesArea.occupants.find(
-          player => player.id === codenamesArea.roles.teamTwoSpymaster,
+          player => player.id === codenamesArea.roles.teamTwoOperative,
         );
         if (spymaster !== undefined && operative !== undefined) {
           this._socket.emit(
-            'playerScoreUpdate',
-            spymaster.toPlayerModel(),
-            operative.toPlayerModel(),
+            'playerScoreUpdate', { spymaster: spymaster.toPlayerModel(), operative: operative.toPlayerModel() }
           );
         }
       }
