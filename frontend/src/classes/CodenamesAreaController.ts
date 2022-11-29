@@ -236,8 +236,12 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     if (this._teamOneWordsRemaining == 0) {
       this.isGameOver = { state: true, team: 'One' };
       // Increment the win count of each player on team One
-      const winningSpymaster = this.occupants.find(player => player.id === this._roles.teamOneSpymaster);
-      const winningOperative = this.occupants.find(player => player.id === this._roles.teamOneOperative);
+      const winningSpymaster = this.occupants.find(
+        player => player.id === this._roles.teamOneSpymaster,
+      );
+      const winningOperative = this.occupants.find(
+        player => player.id === this._roles.teamOneOperative,
+      );
 
       if (winningSpymaster !== undefined && winningOperative !== undefined) {
         winningSpymaster.codenamesWins += 1;
@@ -247,8 +251,12 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     if (this._teamTwoWordsRemaining == 0) {
       this.isGameOver = { state: true, team: 'Two' };
       // Increment the win count of each player on team Two
-      const winningSpymaster = this.occupants.find(player => player.id === this._roles.teamTwoSpymaster);
-      const winningOperative = this.occupants.find(player => player.id === this._roles.teamTwoOperative);
+      const winningSpymaster = this.occupants.find(
+        player => player.id === this._roles.teamTwoSpymaster,
+      );
+      const winningOperative = this.occupants.find(
+        player => player.id === this._roles.teamTwoOperative,
+      );
 
       if (winningSpymaster !== undefined && winningOperative !== undefined) {
         winningSpymaster.codenamesWins += 1;
@@ -281,6 +289,9 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     }
   }
 
+  /**
+   * Returns if this area is currently active
+   */
   get isActive() {
     return this._isActive;
   }

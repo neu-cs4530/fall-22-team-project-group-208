@@ -20,6 +20,7 @@ export default class PlayerController extends (EventEmitter as new () => TypedEm
 
   public gameObjects?: PlayerGameObjects;
 
+  /* Keeps track of the number of codenames game wins for this player. */
   private _codenamesWins: number;
 
   constructor(id: string, userName: string, location: PlayerLocation) {
@@ -83,7 +84,11 @@ export default class PlayerController extends (EventEmitter as new () => TypedEm
   }
 
   static fromPlayerModel(modelPlayer: PlayerModel): PlayerController {
-    const newPlayerFromModel = new PlayerController(modelPlayer.id, modelPlayer.userName, modelPlayer.location);
+    const newPlayerFromModel = new PlayerController(
+      modelPlayer.id,
+      modelPlayer.userName,
+      modelPlayer.location,
+    );
     newPlayerFromModel.codenamesWins = modelPlayer.codenamesWins;
     return newPlayerFromModel;
   }

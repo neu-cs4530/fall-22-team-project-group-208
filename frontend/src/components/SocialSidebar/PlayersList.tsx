@@ -6,6 +6,7 @@ import PlayerName from './PlayerName';
 
 /**
  * Lists the current players in the town, along with the current town's name and ID
+ * Also has a leaderboard to keep track of player wins
  *
  * See relevant hooks: `usePlayersInTown` and `useCoveyAppState`
  *
@@ -28,8 +29,7 @@ export default function PlayersInTownList(): JSX.Element {
       <OrderedList>
         {sorted.map(player => (
           <ListItem key={player.id}>
-            <PlayerName player={player} />
-            <div> | # code names wins: {player.codenamesWins}</div>
+            <PlayerName player={player} /> | Codenames wins: {player.codenamesWins}
           </ListItem>
         ))}
       </OrderedList>

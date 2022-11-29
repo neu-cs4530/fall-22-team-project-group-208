@@ -415,7 +415,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         }
         this.emit('playerMoved', playerToUpdate);
       } else {
-        //TODO: It should not be possible to receive a playerMoved event for a player that is not already in the players array, right?
         const newPlayer = PlayerController.fromPlayerModel(movedPlayer);
         this._players = this.players.concat(newPlayer);
         this.emit('playerMoved', newPlayer);
@@ -468,8 +467,12 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
      * player whose points they belong to. If the player is not present, do not update their score.
      */
     this._socket.on('playerScoreUpdated', update => {
-      const spymasterToUpdate = this.players.find(eachPlayer => eachPlayer.id === update.spymaster.id);
-      const operativeToUpdate = this.players.find(eachPlayer => eachPlayer.id === update.operative.id);
+      const spymasterToUpdate = this.players.find(
+        eachPlayer => eachPlayer.id === update.spymaster.id,
+      );
+      const operativeToUpdate = this.players.find(
+        eachPlayer => eachPlayer.id === update.operative.id,
+      );
 
       if (spymasterToUpdate) {
         spymasterToUpdate.codenamesWins = update.spymaster.codenamesWins;
@@ -519,9 +522,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
           player => player.id === codenamesArea.roles.teamOneOperative,
         );
         if (spymaster !== undefined && operative !== undefined) {
-          this._socket.emit(
-            'playerScoreUpdate', { spymaster: spymaster.toPlayerModel(), operative: operative.toPlayerModel() }
-          );
+          this._socket.emit('playerScoreUpdate', {
+            spymaster: spymaster.toPlayerModel(),
+            operative: operative.toPlayerModel(),
+          });
         }
       } else if (codenamesArea.isGameOver.team === 'Two') {
         const spymaster = codenamesArea.occupants.find(
@@ -531,9 +535,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
           player => player.id === codenamesArea.roles.teamTwoOperative,
         );
         if (spymaster !== undefined && operative !== undefined) {
-          this._socket.emit(
-            'playerScoreUpdate', { spymaster: spymaster.toPlayerModel(), operative: operative.toPlayerModel() }
-          );
+          this._socket.emit('playerScoreUpdate', {
+            spymaster: spymaster.toPlayerModel(),
+            operative: operative.toPlayerModel(),
+          });
         }
       }
     }

@@ -1,5 +1,8 @@
 import Interactable, { KnownInteractableTypes } from '../Interactable';
 
+/**
+ * A class to represent a codenames game area interactable in the town.
+ */
 export default class GameArea extends Interactable {
   private _labelText?: Phaser.GameObjects.Text;
 

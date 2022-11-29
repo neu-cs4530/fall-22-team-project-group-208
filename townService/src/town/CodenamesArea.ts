@@ -12,10 +12,6 @@ const CARDS_FOR_BLUE_TEAM = 8;
 const CARDS_FOR_RED_TEAM = 8;
 
 export default class CodenamesArea extends InteractableArea {
-  /* Whether or not the game is currently actively in play. 
-       Game can only be active if all roles filled. */
-  private _isActive: boolean;
-
   /* The current player whose turn is active. */
   private _turn: string;
 
@@ -39,9 +35,6 @@ export default class CodenamesArea extends InteractableArea {
   /* The amount of words for Team 2 that have not been revealed. */
   private _redWordsRemaining: number;
 
-  /* The winner of the most recent match. */
-  private _winningTeam?: string;
-
   /* The number of players currently in the game. */
   private _playerCount: number;
 
@@ -56,7 +49,6 @@ export default class CodenamesArea extends InteractableArea {
    */
   public constructor(id: string, coordinates: BoundingBox, townEmitter: TownEmitter) {
     super(id, coordinates, townEmitter);
-    this._isActive = false;
     this._turn = 'Spy1';
     this._roles = {
       teamOneSpymaster: undefined,

@@ -153,7 +153,6 @@ export async function mockTownControllerConnection(
           userName: testController.userName,
           codenamesWins: 0,
           location: { moving: false, x: 0, y: 0, rotation: 'back' },
-          codenamesWins: 0,
         },
       ],
       friendlyName: nanoid(),
@@ -174,7 +173,6 @@ export async function mockTownControllerConnection(
         userName: nanoid(),
         codenamesWins: 0,
         location: { moving: false, x: 0, y: 0, rotation: 'back' },
-        codenamesWins: 0,
       });
       responseToSendController.interactables.push({
         id: nanoid(),

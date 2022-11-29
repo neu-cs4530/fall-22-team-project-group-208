@@ -15,8 +15,7 @@ import {
   SocketData,
   ViewingArea as ViewingAreaModel,
   CodenamesArea as CodenamesAreaModel,
-  Player as PlayerModel,
-  PlayerScoreUpdate
+  PlayerScoreUpdate,
 } from '../types/CoveyTownSocket';
 import ConversationArea from './ConversationArea';
 import InteractableArea from './InteractableArea';
@@ -181,7 +180,10 @@ export default class Town {
       if (backendSpymaster !== undefined && backendOperative !== undefined) {
         backendSpymaster.codenamesWins = update.spymaster.codenamesWins;
         backendOperative.codenamesWins = update.operative.codenamesWins;
-        this._broadcastEmitter.emit('playerScoreUpdated', { spymaster: update.spymaster, operative: update.operative });
+        this._broadcastEmitter.emit('playerScoreUpdated', {
+          spymaster: update.spymaster,
+          operative: update.operative,
+        });
       }
     });
     return newPlayer;
