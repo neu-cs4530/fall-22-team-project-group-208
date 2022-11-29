@@ -20,11 +20,15 @@ export default class PlayerController extends (EventEmitter as new () => TypedEm
 
   public gameObjects?: PlayerGameObjects;
 
+  /* Keeps track of the number of codenames game wins for this player. */
+  private _codenamesWins: number;
+
   constructor(id: string, userName: string, location: PlayerLocation) {
     super();
     this._id = id;
     this._userName = userName;
     this._location = location;
+    this._codenamesWins = 0;
   }
 
   set location(newLocation: PlayerLocation) {
@@ -45,8 +49,21 @@ export default class PlayerController extends (EventEmitter as new () => TypedEm
     return this._id;
   }
 
+  get codenamesWins() {
+    return this._codenamesWins;
+  }
+
+  public set codenamesWins(newWin: number) {
+    this._codenamesWins = newWin;
+  }
+
   toPlayerModel(): PlayerModel {
-    return { id: this.id, userName: this.userName, location: this.location };
+    return {
+      id: this.id,
+      userName: this.userName,
+      location: this.location,
+      codenamesWins: this.codenamesWins,
+    };
   }
 
   private _updateGameComponentLocation() {
@@ -67,6 +84,12 @@ export default class PlayerController extends (EventEmitter as new () => TypedEm
   }
 
   static fromPlayerModel(modelPlayer: PlayerModel): PlayerController {
-    return new PlayerController(modelPlayer.id, modelPlayer.userName, modelPlayer.location);
+    const newPlayerFromModel = new PlayerController(
+      modelPlayer.id,
+      modelPlayer.userName,
+      modelPlayer.location,
+    );
+    newPlayerFromModel.codenamesWins = modelPlayer.codenamesWins;
+    return newPlayerFromModel;
   }
 }

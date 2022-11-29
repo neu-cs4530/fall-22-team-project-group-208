@@ -32,15 +32,16 @@ describe('CodenamesArea', () => {
 
       const lastEmittedUpdate = getLastEmittedEvent(townEmitter, 'interactableUpdate');
       expect(lastEmittedUpdate).toEqual({
-        board: [],
         id,
         turn: 'Spy1',
         occupantsID: [newPlayer.id],
-        playerCount: 0,
         roles,
         hint: { word: '', quantity: '0' },
         teamOneWordsRemaining: 8,
         teamTwoWordsRemaining: 8,
+        playerCount: 0,
+        board: [],
+        isGameOver: { state: false, team: '' },
       });
     });
     it("Sets the player's conversationLabel and emits an update for their location", () => {
@@ -60,30 +61,32 @@ describe('CodenamesArea', () => {
       expect(testArea.occupantsByID).toEqual([extraPlayer.id]);
       const lastEmittedUpdate = getLastEmittedEvent(townEmitter, 'interactableUpdate');
       expect(lastEmittedUpdate).toEqual({
-        board: [],
         id,
         turn: 'Spy1',
         occupantsID: [extraPlayer.id],
-        playerCount: 0,
         roles,
         hint: { word: '', quantity: '0' },
         teamOneWordsRemaining: 8,
         teamTwoWordsRemaining: 8,
+        playerCount: 0,
+        board: [],
+        isGameOver: { state: false, team: '' },
       });
     });
   });
   test('toModel sets the properties needed for a simple CodenamesAreaModel', () => {
     const model = testArea.toModel();
     expect(model).toEqual({
-      board: [],
       id,
       turn: 'Spy1',
       occupantsID: [newPlayer.id],
       roles,
-      playerCount: 0,
       hint: { word: '', quantity: '0' },
       teamOneWordsRemaining: 8,
       teamTwoWordsRemaining: 8,
+      playerCount: 0,
+      board: [],
+      isGameOver: { state: false, team: '' },
     });
   });
   describe('fromMapObject', () => {

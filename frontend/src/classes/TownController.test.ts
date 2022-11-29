@@ -71,7 +71,7 @@ describe('TownController', () => {
     const eventListener = getEventListener(mockSocket, receivedEvent);
     const mockListener = jest.fn() as jest.MockedFunction<TownEvents[ExpectedListenerName]>;
     testController.addListener(listenerToExpect, mockListener);
-    eventListener(receivedParameter);
+    eventListener(receivedParameter, undefined);
     if (expectedListenerParam === undefined) {
       expect(mockListener).toHaveBeenCalled();
     } else {
@@ -414,6 +414,7 @@ describe('TownController', () => {
         id: nanoid(),
         location: { moving: false, rotation: 'back', x: 0, y: 1, interactableID: nanoid() },
         userName: nanoid(),
+        codenamesWins: 0,
       };
       //Add that player to the test town
       testPlayerPlayersChangedFn = emitEventAndExpectListenerFiring(

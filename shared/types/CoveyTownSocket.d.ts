@@ -30,6 +30,7 @@ export interface Player {
   id: string;
   userName: string;
   location: PlayerLocation;
+  codenamesWins: number;
 };
 
 export type XY = { x: number, y: number };
@@ -88,6 +89,7 @@ export interface CodenamesArea {
   teamTwoWordsRemaining: number;
   playerCount: number;
   board: GameCard[];
+  isGameOver: { state: boolean, team: string };
 }
 
 export interface GameCard {
@@ -97,7 +99,12 @@ export interface GameCard {
   color: string;
 }
 
-export interface ServerToClientEvents {
+export interface PlayerScoreUpdate {
+  spymaster: Player;
+  operative: Player;
+}
+
+export interface  ServerToClientEvents {
   playerMoved: (movedPlayer: Player) => void;
   playerDisconnect: (disconnectedPlayer: Player) => void;
   playerJoined: (newPlayer: Player) => void;
@@ -106,10 +113,12 @@ export interface ServerToClientEvents {
   townClosing: () => void;
   chatMessage: (message: ChatMessage) => void;
   interactableUpdate: (interactable: Interactable) => void;
+  playerScoreUpdated: (update: PlayerScoreUpdate) => void;
 }
 
 export interface ClientToServerEvents {
   chatMessage: (message: ChatMessage) => void;
   playerMovement: (movementData: PlayerLocation) => void;
   interactableUpdate: (update: Interactable) => void;
+  playerScoreUpdate: (update: PlayerScoreUpdate) => void;
 }

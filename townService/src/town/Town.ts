@@ -15,6 +15,7 @@ import {
   SocketData,
   ViewingArea as ViewingAreaModel,
   CodenamesArea as CodenamesAreaModel,
+  PlayerScoreUpdate,
 } from '../types/CoveyTownSocket';
 import ConversationArea from './ConversationArea';
 import InteractableArea from './InteractableArea';
@@ -142,11 +143,12 @@ export default class Town {
     });
 
     // Set up a listener to process updates to interactables.
-    // Currently only knows how to process updates for ViewingArea's, and
-    // ignores any other updates for any other kind of interactable.
     // For ViewingArea's: dispatches an updateModel call to the viewingArea that
     // corresponds to the interactable being updated. Does not throw an error if
     // the specified viewing area does not exist.
+    // For CodenamesArea's: dispatches an updateModel call to the codenamesArea that
+    // corresponds to the interactable being updated. Does not throw an error if
+    // the specified codenames area does not exist.
     socket.on('interactableUpdate', (update: Interactable) => {
       if (isViewingArea(update)) {
         newPlayer.townEmitter.emit('interactableUpdate', update);
@@ -164,6 +166,24 @@ export default class Town {
         if (codenamesArea) {
           (codenamesArea as CodenamesArea).updateModel(update);
         }
+      }
+    });
+    /**
+     * Set up a listener to listen to playerScoreUpdate events, where two players have their scores updated on the backend and across all clients.
+     *
+     * If the scores are different from what's on the townService's player, update the townService and emit the update to all other clients.
+     */
+    socket.on('playerScoreUpdate', (update: PlayerScoreUpdate) => {
+      const backendSpymaster = this._players.find(player => player.id === update.spymaster.id);
+      const backendOperative = this._players.find(player => player.id === update.operative.id);
+
+      if (backendSpymaster !== undefined && backendOperative !== undefined) {
+        backendSpymaster.codenamesWins = update.spymaster.codenamesWins;
+        backendOperative.codenamesWins = update.operative.codenamesWins;
+        this._broadcastEmitter.emit('playerScoreUpdated', {
+          spymaster: update.spymaster,
+          operative: update.operative,
+        });
       }
     });
     return newPlayer;
@@ -294,9 +314,20 @@ export default class Town {
   }
 
   /**
+   * Creates a new codenames area in this town if there is not currently an active
+   * codenames area with the same ID. The codenames area ID must match the name of a
+   * codenames area that exists in this town's map.
    *
-   * @param codenamesArea
-   * @returns
+   * If successful creating the codenames area, this method:
+   *    Adds any players who are in the region defined by the codenames area to it
+   *    Notifies all players in the town that the codenames area has been updated by
+   *      emitting an interactableUpdate event
+   *
+   * @param codenamesArea Information describing the codenames area to create.
+   *
+   * @returns True if the codenames area was created or false if there is no known
+   * codenames area with the specified ID or if there is already an active codenames area
+   * with the specified ID
    */
   public addCodenamesArea(codenamesArea: CodenamesAreaModel): boolean {
     const area = this._interactables.find(

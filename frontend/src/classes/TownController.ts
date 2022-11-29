@@ -415,7 +415,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         }
         this.emit('playerMoved', playerToUpdate);
       } else {
-        //TODO: It should not be possible to receive a playerMoved event for a player that is not already in the players array, right?
         const newPlayer = PlayerController.fromPlayerModel(movedPlayer);
         this._players = this.players.concat(newPlayer);
         this.emit('playerMoved', newPlayer);
@@ -434,7 +433,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
      * events (@see ViewingAreaController and @see ConversationAreaController)
      */
     this._socket.on('interactableUpdate', interactable => {
-      console.log(interactable);
       if (isConversationArea(interactable)) {
         const updatedConversationArea = this.conversationAreas.find(c => c.id === interactable.id);
         if (updatedConversationArea) {
@@ -464,6 +462,27 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         }
       }
     });
+    /**
+     * When the score of two players change as a result of a recently concluded game, push the new score into the
+     * player whose points they belong to. If the player is not present, do not update their score.
+     */
+    this._socket.on('playerScoreUpdated', update => {
+      const spymasterToUpdate = this.players.find(
+        eachPlayer => eachPlayer.id === update.spymaster.id,
+      );
+      const operativeToUpdate = this.players.find(
+        eachPlayer => eachPlayer.id === update.operative.id,
+      );
+
+      if (spymasterToUpdate) {
+        spymasterToUpdate.codenamesWins = update.spymaster.codenamesWins;
+      }
+      if (operativeToUpdate) {
+        operativeToUpdate.codenamesWins = update.operative.codenamesWins;
+      }
+      const newPlayerList = Object.assign([], this.players);
+      this._players = newPlayerList;
+    });
   }
 
   /**
@@ -481,6 +500,48 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     assert(ourPlayer);
     ourPlayer.location = newLocation;
     this.emit('playerMoved', ourPlayer);
+  }
+
+  /**
+   * Emit a movement event for the winners of the current game in the area, updating the state locally, and then notifying the
+   * townService that the score for the winners has changed.
+   *
+   * The townService is responsible for detecting whether or not a score change actually occurred.
+   *
+   * No event is emitted if there is either no winner, or a player is missing.
+   *
+   * @param codenamesArea the CodenamesArea containing the winning players
+   */
+  public emitPlayerScoreChange(codenamesArea: CodenamesAreaController) {
+    if (codenamesArea.isGameOver.state === true && codenamesArea.isGameOver.team !== '') {
+      if (codenamesArea.isGameOver.team === 'One') {
+        const spymaster = codenamesArea.occupants.find(
+          player => player.id === codenamesArea.roles.teamOneSpymaster,
+        );
+        const operative = codenamesArea.occupants.find(
+          player => player.id === codenamesArea.roles.teamOneOperative,
+        );
+        if (spymaster !== undefined && operative !== undefined) {
+          this._socket.emit('playerScoreUpdate', {
+            spymaster: spymaster.toPlayerModel(),
+            operative: operative.toPlayerModel(),
+          });
+        }
+      } else if (codenamesArea.isGameOver.team === 'Two') {
+        const spymaster = codenamesArea.occupants.find(
+          player => player.id === codenamesArea.roles.teamTwoSpymaster,
+        );
+        const operative = codenamesArea.occupants.find(
+          player => player.id === codenamesArea.roles.teamTwoOperative,
+        );
+        if (spymaster !== undefined && operative !== undefined) {
+          this._socket.emit('playerScoreUpdate', {
+            spymaster: spymaster.toPlayerModel(),
+            operative: operative.toPlayerModel(),
+          });
+        }
+      }
+    }
   }
 
   /**
@@ -568,6 +629,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     teamTwoWordsRemaining: number;
     playerCount: number;
     board: GameCard[];
+    isGameOver: { state: boolean; team: string };
   }) {
     await this._townsService.createCodenamesArea(this.townID, this.sessionToken, newArea);
   }
@@ -688,10 +750,11 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   }
 
   /**
-   *
+   * Emit a codenames area update to the townService
+   * @param codenamesArea The Codenames Area Controller that is updated and should be emitted
+   *    with the event
    */
   public emitCodenamesAreaUpdate(codenamesArea: CodenamesAreaController) {
-    console.log(codenamesArea.playerCount);
     this._socket.emit('interactableUpdate', codenamesArea.toCodenamesAreaModel());
   }
 
@@ -781,7 +844,7 @@ export function useViewingAreaController(viewingAreaID: string): ViewingAreaCont
  *
  * This hook relies on the TownControllerContext.
  *
- * @param codenamesAreaID The ID of the viewing area to retrieve the controller for
+ * @param codenamesAreaID The ID of the codenames area to retrieve the controller for
  *
  * @throws Error if there is no codenames area controller matching the specifeid ID
  */
@@ -821,32 +884,6 @@ export function useActiveConversationAreas(): ConversationAreaController[] {
     };
   }, [townController, setConversationAreas]);
   return conversationAreas;
-}
-
-/**
- * A react hook to retrieve the active conversation areas. This hook will re-render any components
- * that use it when the set of conversation areas changes. It does *not* re-render its dependent components
- * when the state of one of those areas changes - @see useCodednamesAreaOccupants
- *
- * This hook relies on the TownControllerContext.
- *
- * @returns the list of codenames area controllers that are currently "active"
- */
-export function useActiveCodenamesAreas(): CodenamesAreaController[] {
-  const townController = useTownController();
-  const [codenamesAreas, setCodenamesAreas] = useState<CodenamesAreaController[]>(
-    townController.codenamesAreas.filter(eachArea => !eachArea.isEmpty()),
-  );
-  useEffect(() => {
-    const updater = (allAreas: CodenamesAreaController[]) => {
-      setCodenamesAreas(allAreas.filter(eachArea => !eachArea.isEmpty()));
-    };
-    townController.addListener('codenamesAreasChanged', updater);
-    return () => {
-      townController.removeListener('codenamesAreasChanged', updater);
-    };
-  }, [townController, setCodenamesAreas]);
-  return codenamesAreas;
 }
 
 /**

@@ -1,9 +1,10 @@
 import Interactable, { KnownInteractableTypes } from '../Interactable';
 
+/**
+ * A class to represent a codenames game area interactable in the town.
+ */
 export default class GameArea extends Interactable {
   private _labelText?: Phaser.GameObjects.Text;
-
-  private _isInteracting = false;
 
   addedToScene() {
     super.addedToScene();
@@ -15,6 +16,12 @@ export default class GameArea extends Interactable {
       this.y - this.displayHeight / 2,
       `Press space to start the codenames game`,
       { color: '#FFFFFF', backgroundColor: '#000000' },
+    );
+    this.scene.add.text(
+      this.x - this.displayWidth / 2,
+      this.y + this.displayHeight / 2,
+      'Codenames Area',
+      { color: '#000000' },
     );
     this._labelText.setVisible(false);
     this.townController.getCodenamesAreaController(this);
@@ -37,7 +44,6 @@ export default class GameArea extends Interactable {
 
   interact(): void {
     this._labelText?.setVisible(false);
-    this._isInteracting = true;
   }
 
   getType(): KnownInteractableTypes {

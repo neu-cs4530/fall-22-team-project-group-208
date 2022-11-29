@@ -2,7 +2,13 @@ import assert from 'assert';
 import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
 import { nanoid } from 'nanoid';
 import { Town } from '../api/Model';
-import { ConversationArea, Interactable, TownEmitter, ViewingArea } from '../types/CoveyTownSocket';
+import {
+  ConversationArea,
+  Interactable,
+  TownEmitter,
+  ViewingArea,
+  CodenamesArea,
+} from '../types/CoveyTownSocket';
 import TownsStore from '../lib/TownsStore';
 import {
   createConversationForTesting,
@@ -11,6 +17,7 @@ import {
   mockPlayer,
   isViewingArea,
   isConversationArea,
+  isCodenamesArea,
   MockedPlayer,
 } from '../TestUtils';
 import { TownsController } from './TownsController';
@@ -353,6 +360,81 @@ describe('TownsController integration tests', () => {
         viewingArea.id = nanoid();
         await expect(
           controller.createViewingArea(testingTown.townID, sessionToken, viewingArea),
+        ).rejects.toThrow();
+      });
+    });
+
+    describe('Create Codenames Area', () => {
+      it('Executes without error when creating a new codenames area', async () => {
+        const codenamesArea = interactables.find(isCodenamesArea) as CodenamesArea;
+        if (!codenamesArea) {
+          fail('Expected at least one viewing area to be returned in the initial join data');
+        } else {
+          const newCodenamesArea: CodenamesArea = {
+            id: codenamesArea.id,
+            turn: codenamesArea.turn,
+            occupantsID: codenamesArea.occupantsID,
+            roles: codenamesArea.roles,
+            hint: codenamesArea.hint,
+            teamOneWordsRemaining: codenamesArea.teamOneWordsRemaining,
+            teamTwoWordsRemaining: codenamesArea.teamTwoWordsRemaining,
+            playerCount: codenamesArea.playerCount,
+            board: codenamesArea.board,
+            isGameOver: codenamesArea.isGameOver,
+          };
+          await controller.createCodenamesArea(testingTown.townID, sessionToken, newCodenamesArea);
+          // Check to see that the viewing area was successfully updated
+          const townEmitter = getBroadcastEmitterForTownID(testingTown.townID);
+          const updateMessage = getLastEmittedEvent(townEmitter, 'interactableUpdate');
+          if (isCodenamesArea(updateMessage)) {
+            expect(updateMessage).toEqual(newCodenamesArea);
+          } else {
+            fail('Expected an interactableUpdate to be dispatched with the new viewing area');
+          }
+        }
+      });
+      it('Returns an error message if the town ID is invalid', async () => {
+        const codenamesArea = interactables.find(isCodenamesArea) as CodenamesArea;
+        const newCodenamesArea: CodenamesArea = {
+          id: codenamesArea.id,
+          turn: codenamesArea.turn,
+          occupantsID: codenamesArea.occupantsID,
+          roles: codenamesArea.roles,
+          hint: codenamesArea.hint,
+          teamOneWordsRemaining: codenamesArea.teamOneWordsRemaining,
+          teamTwoWordsRemaining: codenamesArea.teamTwoWordsRemaining,
+          playerCount: codenamesArea.playerCount,
+          board: codenamesArea.board,
+          isGameOver: codenamesArea.isGameOver,
+        };
+        await expect(
+          controller.createCodenamesArea(nanoid(), sessionToken, newCodenamesArea),
+        ).rejects.toThrow();
+      });
+      it('Checks for a valid session token before creating a viewing area', async () => {
+        const invalidSessionToken = nanoid();
+        const codenamesArea = interactables.find(isCodenamesArea) as CodenamesArea;
+        const newCodenamesArea: CodenamesArea = {
+          id: codenamesArea.id,
+          turn: codenamesArea.turn,
+          occupantsID: codenamesArea.occupantsID,
+          roles: codenamesArea.roles,
+          hint: codenamesArea.hint,
+          teamOneWordsRemaining: codenamesArea.teamOneWordsRemaining,
+          teamTwoWordsRemaining: codenamesArea.teamTwoWordsRemaining,
+          playerCount: codenamesArea.playerCount,
+          board: codenamesArea.board,
+          isGameOver: codenamesArea.isGameOver,
+        };
+        await expect(
+          controller.createCodenamesArea(testingTown.townID, invalidSessionToken, newCodenamesArea),
+        ).rejects.toThrow();
+      });
+      it('Returns an error message if addViewingArea returns false', async () => {
+        const codenamesArea = interactables.find(isCodenamesArea) as CodenamesArea;
+        codenamesArea.id = nanoid();
+        await expect(
+          controller.createCodenamesArea(testingTown.townID, sessionToken, codenamesArea),
         ).rejects.toThrow();
       });
     });

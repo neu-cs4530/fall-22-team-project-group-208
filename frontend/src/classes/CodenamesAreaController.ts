@@ -1,6 +1,5 @@
 import EventEmitter from 'events';
 import _ from 'lodash';
-import { useEffect, useState } from 'react';
 import TypedEmitter from 'typed-emitter';
 import PlayerController from './PlayerController';
 import { CodenamesArea as CodenamesAreaModel, GameCard } from '../types/CoveyTownSocket';
@@ -11,7 +10,7 @@ import { CodenamesArea as CodenamesAreaModel, GameCard } from '../types/CoveyTow
  */
 export type CodenamesAreaEvents = {
   /**
-   * An event that indicates the players in the Codenames Area has changed.
+   * An even that indicates the occupants in this area has changed.
    */
   occupantsChange: (newOccupants: PlayerController[]) => void;
   /**
@@ -36,15 +35,18 @@ export type CodenamesAreaEvents = {
    */
   hintChange: (newHint: { word: string; quantity: string }) => void;
   /**
-   *
+   * An event that indicates the number of players in the game has changed.
    */
   playerCountChange: (newCount: number) => void;
+  /**
+   * An event that indicates the game over state has changed.
+   */
+  isGameOverChange: (newState: { state: boolean; team: string }) => void;
 };
 
 /**
  * A CodenamesAreaController manages the local behavior of a codenames area in the frontend,
- * implementing the logic to bridge between the townService's interpretation of codenames areas and the
- * frontend's. The CodenamesAreaController emits events when the codenames area changes.
+ * implementing the logic to bridge between the townService's interpretation of codenames areas and the frontend's. The CodenamesAreaController emits events when the codenames area changes.
  */
 export default class CodenamesAreaController extends (EventEmitter as new () => TypedEmitter<CodenamesAreaEvents>) {
   private _occupants: PlayerController[] = [];
@@ -83,9 +85,12 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   /* The amount of words for Team 2 that have not been correctly guessed */
   private _teamTwoWordsRemaining: number;
 
+  /* A check for if the game is over */
+  private _isGameOver: { state: boolean; team: string };
+
   /**
    * Create a new CodenamesAreaController
-   * @param id
+   * @param id the name of the codenames area
    */
   constructor(id: string) {
     super();
@@ -102,10 +107,15 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     this._teamOneWordsRemaining = 8;
     this._teamTwoWordsRemaining = 8;
     this._playerCount = 0;
-    this._board = []; // make this GameCard.intializeCards() ??
+    this._board = [];
+    this._isGameOver = { state: false, team: '' };
   }
 
-  public areRolesFilled(): boolean {
+  /**
+   * Determines whether all of the game roles have been assigned to a player.
+   * @returns true if all roles are assigned, false otherwise
+   */
+  private _areRolesFilled(): boolean {
     const teamOneSpymaster = this._roles.teamOneSpymaster;
     const teamOneOperative = this._roles.teamOneOperative;
     const teamTwoSpymaster = this._roles.teamTwoSpymaster;
@@ -138,7 +148,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
       throw new Error('All roles have been filled!');
     }
     this.playerCount = this.playerCount + 1;
-    this._isActive = this.areRolesFilled();
+    this._isActive = this._areRolesFilled();
     this.emit('playerCountChange', this._playerCount);
     this.emit('roleChange', this._roles);
   }
@@ -172,7 +182,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     } else {
       throw new Error('This player is not assigned to any roles!');
     }
-    this._isActive = this.areRolesFilled();
+    this._isActive = this._areRolesFilled();
   }
 
   /**
@@ -182,30 +192,81 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
    * @param guesses The coordinates of the GameCard that is being guessed.
    */
   public makeGuess(guess: string): void {
-    const wordBoard = this._board.map(card => card.name);
+    const wordBoard: string[] = this._board.map(card => card.name);
     const guessCondition = (word: string) => word === guess;
     const guessIndex: number = wordBoard.findIndex(guessCondition);
-    const guessCard: GameCard = this._board[guessIndex];
+    const newBoard: GameCard[] = Object.assign([], this._board);
+    const guessCard: GameCard = newBoard[guessIndex];
 
     if (guessIndex === -1) {
+      // Theoretically the first two errors should never occur, but it is here for debugging purposes
       throw new Error('Word does not exist on the board');
-    } else if (this._turn !== 'Op1' && this._turn !== 'Op2') {
+    }
+    if (!(this._turn === 'Op1' || this._turn === 'Op2')) {
       throw new Error('It is not the proper turn to make a guess');
-    } else if (this._turn === 'Op1' && guessCard.team === 'One') {
-      guessCard.guessed = true;
+    }
+    guessCard.guessed = true;
+    this.board = newBoard;
+    if (guessCard.team === 'One') {
       this._teamOneWordsRemaining -= 1;
-    } else if (this._turn === 'Op2' && guessCard.team === 'Two') {
-      guessCard.guessed = true;
+      if (this._turn !== 'Op1') {
+        this.turn = 'Spy1';
+      }
+    } else if (guessCard.team === 'Two') {
       this._teamTwoWordsRemaining -= 1;
+      if (this._turn !== 'Op2') {
+        this.turn = 'Spy2';
+      }
     } else if (guessCard.team === 'Bomb') {
-      // end the game
+      if (this._turn !== 'Op1') {
+        this._teamOneWordsRemaining = 0;
+      }
+      if (this._turn !== 'Op2') {
+        this._teamTwoWordsRemaining = 0;
+      }
     } else {
-      // change the turn
+      const newTurn = this._turn === 'Op1' ? 'Spy2' : 'Spy1';
+      this.turn = newTurn;
+    }
+    this.checkGameOver();
+  }
+
+  /** Checks if the game is over by seeing if either team has 0 words remaining */
+  public checkGameOver(): void {
+    if (this._teamOneWordsRemaining == 0) {
+      this.isGameOver = { state: true, team: 'One' };
+      // Increment the win count of each player on team One
+      const winningSpymaster = this.occupants.find(
+        player => player.id === this._roles.teamOneSpymaster,
+      );
+      const winningOperative = this.occupants.find(
+        player => player.id === this._roles.teamOneOperative,
+      );
+
+      if (winningSpymaster !== undefined && winningOperative !== undefined) {
+        winningSpymaster.codenamesWins += 1;
+        winningOperative.codenamesWins += 1;
+      }
+    }
+    if (this._teamTwoWordsRemaining == 0) {
+      this.isGameOver = { state: true, team: 'Two' };
+      // Increment the win count of each player on team Two
+      const winningSpymaster = this.occupants.find(
+        player => player.id === this._roles.teamTwoSpymaster,
+      );
+      const winningOperative = this.occupants.find(
+        player => player.id === this._roles.teamTwoOperative,
+      );
+
+      if (winningSpymaster !== undefined && winningOperative !== undefined) {
+        winningSpymaster.codenamesWins += 1;
+        winningOperative.codenamesWins += 1;
+      }
     }
   }
 
   /**
-   *
+   * The current roles
    */
   get roles() {
     return this._roles;
@@ -228,6 +289,9 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     }
   }
 
+  /**
+   * Returns if this area is currently active
+   */
   get isActive() {
     return this._isActive;
   }
@@ -259,10 +323,12 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
    * @param newHint The word to set as the hint and the amount of words within the board that this hint correlates with.
    */
   public set hint(newHint: { word: string; quantity: string }) {
-    if (this._hint.word !== newHint.word || this._hint.quantity !== newHint.quantity) {
-      this._hint = newHint;
-      this.emit('hintChange', newHint);
-    }
+    this._hint = newHint;
+    // change the turn from the operative to the other team's spymaster
+    const newTurn = this._turn === 'Spy1' ? 'Op1' : 'Op2';
+    this._turn = newTurn;
+    this.emit('turnChange', newTurn);
+    this.emit('hintChange', newHint);
   }
 
   /**
@@ -290,6 +356,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     return this._occupants;
   }
 
+  /** The number of words remaining for Team One */
   get teamOneWordsRemaining() {
     return this._teamOneWordsRemaining;
   }
@@ -300,6 +367,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     }
   }
 
+  /** The number of words remaining for Team One */
   get teamTwoWordsRemaining() {
     return this._teamTwoWordsRemaining;
   }
@@ -310,6 +378,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     }
   }
 
+  /** The number of players that are in the current instance of the game */
   get playerCount() {
     return this._playerCount;
   }
@@ -321,6 +390,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     }
   }
 
+  /** The current state of the game board */
   get board() {
     return this._board;
   }
@@ -332,11 +402,16 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     }
   }
 
-  /**
-   * A codenames area is empty if there are no occupants in it.
-   */
-  isEmpty(): boolean {
-    return this._occupants.length === 0;
+  /** The current state of the game */
+  get isGameOver() {
+    return this._isGameOver;
+  }
+
+  public set isGameOver(newState: { state: boolean; team: string }) {
+    if (this._isGameOver.state !== newState.state || this._isGameOver.team !== newState.team) {
+      this._isGameOver = newState;
+      this.emit('isGameOverChange', newState);
+    }
   }
 
   /**
@@ -354,6 +429,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
       teamTwoWordsRemaining: this.teamTwoWordsRemaining,
       playerCount: this.playerCount,
       board: this._board,
+      isGameOver: this._isGameOver,
     };
   }
 
@@ -373,7 +449,7 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
   }
 
   /**
-   *
+   * Updates the controller with the values from a given codenames area interactable.
    */
   public updateFrom(updatedModel: CodenamesAreaModel): void {
     this.hint = updatedModel.hint;
@@ -383,21 +459,6 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
     this.teamTwoWordsRemaining = updatedModel.teamTwoWordsRemaining;
     this.playerCount = updatedModel.playerCount;
     this.board = updatedModel.board;
+    this.isGameOver = updatedModel.isGameOver;
   }
-}
-
-/**
- * A react hook to retrieve the occupants of a ConversationAreaController, returning an array of PlayerController.
- *
- * This hook will re-render any components that use it when the set of occupants changes.
- */
-export function useCodenamesAreaOccupants(area: CodenamesAreaController): PlayerController[] {
-  const [occupants, setOccupants] = useState(area.occupants);
-  useEffect(() => {
-    area.addListener('occupantsChange', setOccupants);
-    return () => {
-      area.removeListener('occupantsChange', setOccupants);
-    };
-  }, [area]);
-  return occupants;
 }
