@@ -563,7 +563,18 @@
                  "width":158.333333333333,
                  "x":3538.33333333333,
                  "y":826.666666666667
-                }],
+                }
+                ,{
+                     "height":96.1414912676947,
+                     "id":39,
+                     "name":"Codenames Game",
+                     "rotation":0,
+                     "type":"CodenamesArea",
+                     "visible":true,
+                     "width":97.1742862755582,
+                     "x":3008.48655931821,
+                     "y":865.233745213771
+                     }],
          "opacity":1,
          "type":"objectgroup",
          "visible":true,
