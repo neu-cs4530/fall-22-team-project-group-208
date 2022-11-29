@@ -273,6 +273,17 @@ export default function CardGameViews({
         <ModalBody>
           Hint: {currentHint.word} #: {currentHint.quantity}
         </ModalBody>
+        <Button
+          colorScheme={teamColor()}
+          type='submit'
+          disabled={isDisabled()}
+          onClick={() => {
+            const newTurn = currentTurn === 'Op1' ? 'Spy2' : 'Spy1';
+            controller.turn = newTurn;
+            townController.emitCodenamesAreaUpdate(controller);
+          }}>
+          End Turn
+        </Button>
       </div>
     );
   }
