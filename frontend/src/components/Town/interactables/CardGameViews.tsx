@@ -273,6 +273,16 @@ export default function CardGameViews({
         <ModalBody>
           Hint: {currentHint.word} #: {currentHint.quantity}
         </ModalBody>
+        <Button
+          colorScheme={teamColor()}
+          type='submit'
+          disabled={isDisabled()}
+          onClick={async () => {
+            const newTurn = controller.turn === 'Op1' ? 'Spy2' : 'Spy1';
+            controller.turn = newTurn;
+          }}>
+          End Turn
+        </Button>
       </div>
     );
   }
