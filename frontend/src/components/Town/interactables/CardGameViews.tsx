@@ -277,9 +277,10 @@ export default function CardGameViews({
           colorScheme={teamColor()}
           type='submit'
           disabled={isDisabled()}
-          onClick={async () => {
-            const newTurn = controller.turn === 'Op1' ? 'Spy2' : 'Spy1';
+          onClick={() => {
+            const newTurn = currentTurn === 'Op1' ? 'Spy2' : 'Spy1';
             controller.turn = newTurn;
+            townController.emitCodenamesAreaUpdate(controller);
           }}>
           End Turn
         </Button>
