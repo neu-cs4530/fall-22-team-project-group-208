@@ -219,10 +219,10 @@ export default class CodenamesAreaController extends (EventEmitter as new () => 
       }
     } else if (guessCard.team === 'Bomb') {
       if (this._turn !== 'Op1') {
-        this.isGameOver = { state: true, team: 'One' };
+        this._teamOneWordsRemaining = 0;
       }
       if (this._turn !== 'Op2') {
-        this.isGameOver = { state: true, team: 'Two' };
+        this._teamTwoWordsRemaining = 0;
       }
     } else {
       const newTurn = this._turn === 'Op1' ? 'Spy2' : 'Spy1';
