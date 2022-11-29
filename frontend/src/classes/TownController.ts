@@ -477,6 +477,8 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       if (operativeToUpdate) {
         operativeToUpdate.codenamesWins = update.operative.codenamesWins;
       }
+      const newPlayerList = Object.assign([], this.players);
+      this._players = newPlayerList;
     });
   }
 
