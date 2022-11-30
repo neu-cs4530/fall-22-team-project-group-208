@@ -261,17 +261,9 @@ describe('[T2] CodenamesAreaController', () => {
         'It is not the proper turn to make a guess',
       );
     });
-    it("Does not allow for a guess when it is not one of the operative's turn", () => {
-      // TODO: Not sure how to properly test this or if this is a logic we implement in the controller
-      expect(true).toEqual(true);
-    });
-    it("Does not allow for a guess when it is either of the spymaster's turn", () => {
-      // TODO: Not sure how to properly test this or if this is a logic we implement in the controller
-      expect(true).toEqual(true);
-    });
   });
   describe('checkGameOver', () => {
-    it('updates the isGameOver field accordingly when a team wins', () => {
+    it('updates the isGameOver field accordingly when team one wins', () => {
       testArea.teamOneWordsRemaining = 0;
       testArea.checkGameOver();
       expect(testArea.isGameOver).toEqual({
@@ -279,8 +271,61 @@ describe('[T2] CodenamesAreaController', () => {
         team: 'One',
       });
     });
-    it('increments the number of wins for the players on a team', () => {
-      // TODO: fill out whenever Jimmy finishes the player state feature
+    it('updates the isGameOver field accordingly when team two wins', () => {
+      testArea.teamTwoWordsRemaining = 0;
+      testArea.checkGameOver();
+      expect(testArea.isGameOver).toEqual({
+        state: true,
+        team: 'Two',
+      });
+    });
+    it('increments the number of wins for the players on a team if team one wins', () => {
+      testArea.joinPlayer(testArea.occupants[0]);
+      testArea.joinPlayer(testArea.occupants[1]);
+      testArea.joinPlayer(testArea.occupants[2]);
+      testArea.joinPlayer(testArea.occupants[3]);
+      testArea.teamOneWordsRemaining = 0;
+      testArea.checkGameOver();
+      expect(
+        testArea.occupants.find(occupant => occupant.id === testArea.roles.teamOneSpymaster)
+          ?.codenamesWins,
+      ).toEqual(1);
+      expect(
+        testArea.occupants.find(occupant => occupant.id === testArea.roles.teamOneOperative)
+          ?.codenamesWins,
+      ).toEqual(1);
+      expect(
+        testArea.occupants.find(occupant => occupant.id === testArea.roles.teamTwoSpymaster)
+          ?.codenamesWins,
+      ).toEqual(0);
+      expect(
+        testArea.occupants.find(occupant => occupant.id === testArea.roles.teamTwoOperative)
+          ?.codenamesWins,
+      ).toEqual(0);
+    });
+    it('increments the number of wins for the players on a team if team two wins', () => {
+      testArea.joinPlayer(testArea.occupants[0]);
+      testArea.joinPlayer(testArea.occupants[1]);
+      testArea.joinPlayer(testArea.occupants[2]);
+      testArea.joinPlayer(testArea.occupants[3]);
+      testArea.teamTwoWordsRemaining = 0;
+      testArea.checkGameOver();
+      expect(
+        testArea.occupants.find(occupant => occupant.id === testArea.roles.teamOneSpymaster)
+          ?.codenamesWins,
+      ).toEqual(0);
+      expect(
+        testArea.occupants.find(occupant => occupant.id === testArea.roles.teamOneOperative)
+          ?.codenamesWins,
+      ).toEqual(0);
+      expect(
+        testArea.occupants.find(occupant => occupant.id === testArea.roles.teamTwoSpymaster)
+          ?.codenamesWins,
+      ).toEqual(1);
+      expect(
+        testArea.occupants.find(occupant => occupant.id === testArea.roles.teamTwoOperative)
+          ?.codenamesWins,
+      ).toEqual(1);
     });
   });
 });
