@@ -21,6 +21,7 @@ import { isConversationArea, isViewingArea } from '../types/TypeUtils';
 import PlayerController from './PlayerController';
 import TownController, { TownEvents } from './TownController';
 import ViewingAreaController from './ViewingAreaController';
+import CodenamesAreaController from './CodenamesAreaController';
 
 /**
  * Mocks the socket-io client constructor such that it will always return the same
@@ -163,6 +164,134 @@ describe('TownController', () => {
       testController.emitChatMessage(testMessage);
 
       expect(mockSocket.emit).toBeCalledWith('chatMessage', testMessage);
+    });
+    it('playerScoreUpdate emits nothing if game not over yet', () => {
+      const testArea = new CodenamesAreaController(nanoid());
+      const playerLocation: PlayerLocation = {
+        moving: false,
+        x: 0,
+        y: 0,
+        rotation: 'front',
+      };
+      testArea.occupants = [
+        new PlayerController(nanoid(), nanoid(), playerLocation),
+        new PlayerController(nanoid(), nanoid(), playerLocation),
+        new PlayerController(nanoid(), nanoid(), playerLocation),
+        new PlayerController(nanoid(), nanoid(), playerLocation),
+      ];
+      testArea.joinPlayer(testArea.occupants[0]);
+      testArea.joinPlayer(testArea.occupants[1]);
+      testArea.joinPlayer(testArea.occupants[2]);
+      testArea.joinPlayer(testArea.occupants[3]);
+      testController.emitPlayerScoreChange(testArea);
+      expect(mockSocket.emit).not.toBeCalledWith('playerScoreUpdate', {
+        spymaster: testArea.occupants[0].toPlayerModel(),
+        operative: testArea.occupants[2].toPlayerModel(),
+      });
+    });
+    it('playerScoreUpdate emits nothing if player on winning team one is not an occupant', () => {
+      const testArea = new CodenamesAreaController(nanoid());
+      const playerLocation: PlayerLocation = {
+        moving: false,
+        x: 0,
+        y: 0,
+        rotation: 'front',
+      };
+      const blueSpymaster = new PlayerController(nanoid(), nanoid(), playerLocation);
+      testArea.occupants = [
+        new PlayerController(nanoid(), nanoid(), playerLocation),
+        new PlayerController(nanoid(), nanoid(), playerLocation),
+        new PlayerController(nanoid(), nanoid(), playerLocation),
+      ];
+      testArea.joinPlayer(blueSpymaster);
+      testArea.joinPlayer(testArea.occupants[0]);
+      testArea.joinPlayer(testArea.occupants[1]);
+      testArea.joinPlayer(testArea.occupants[2]);
+      testArea.teamOneWordsRemaining = 0;
+      testArea.checkGameOver();
+      testController.emitPlayerScoreChange(testArea);
+      expect(mockSocket.emit).not.toBeCalledWith('playerScoreUpdate', {
+        spymaster: blueSpymaster.toPlayerModel(),
+        operative: testArea.occupants[1].toPlayerModel(),
+      });
+    });
+    it('playerScoreUpdate emits nothing if player on winning team two is not an occupant', () => {
+      const testArea = new CodenamesAreaController(nanoid());
+      const playerLocation: PlayerLocation = {
+        moving: false,
+        x: 0,
+        y: 0,
+        rotation: 'front',
+      };
+      const redOperative = new PlayerController(nanoid(), nanoid(), playerLocation);
+      testArea.occupants = [
+        new PlayerController(nanoid(), nanoid(), playerLocation),
+        new PlayerController(nanoid(), nanoid(), playerLocation),
+        new PlayerController(nanoid(), nanoid(), playerLocation),
+      ];
+      testArea.joinPlayer(testArea.occupants[0]);
+      testArea.joinPlayer(testArea.occupants[1]);
+      testArea.joinPlayer(testArea.occupants[2]);
+      testArea.joinPlayer(redOperative);
+      testArea.teamTwoWordsRemaining = 0;
+      testArea.checkGameOver();
+      testController.emitPlayerScoreChange(testArea);
+      expect(mockSocket.emit).not.toBeCalledWith('playerScoreUpdate', {
+        spymaster: testArea.occupants[1].toPlayerModel(),
+        operative: redOperative.toPlayerModel(),
+      });
+    });
+    it('playerScoreUpdate emits the winning players if team one wins in CodenamesArea', () => {
+      const testArea = new CodenamesAreaController(nanoid());
+      const playerLocation: PlayerLocation = {
+        moving: false,
+        x: 0,
+        y: 0,
+        rotation: 'front',
+      };
+      testArea.occupants = [
+        new PlayerController(nanoid(), nanoid(), playerLocation),
+        new PlayerController(nanoid(), nanoid(), playerLocation),
+        new PlayerController(nanoid(), nanoid(), playerLocation),
+        new PlayerController(nanoid(), nanoid(), playerLocation),
+      ];
+      testArea.joinPlayer(testArea.occupants[0]);
+      testArea.joinPlayer(testArea.occupants[1]);
+      testArea.joinPlayer(testArea.occupants[2]);
+      testArea.joinPlayer(testArea.occupants[3]);
+      testArea.teamOneWordsRemaining = 0;
+      testArea.checkGameOver();
+      testController.emitPlayerScoreChange(testArea);
+      expect(mockSocket.emit).toBeCalledWith('playerScoreUpdate', {
+        spymaster: testArea.occupants[0].toPlayerModel(),
+        operative: testArea.occupants[2].toPlayerModel(),
+      });
+    });
+    it('playerScoreUpdate emits the winning players if team two wins in CodenamesArea', () => {
+      const testArea = new CodenamesAreaController(nanoid());
+      const playerLocation: PlayerLocation = {
+        moving: false,
+        x: 0,
+        y: 0,
+        rotation: 'front',
+      };
+      testArea.occupants = [
+        new PlayerController(nanoid(), nanoid(), playerLocation),
+        new PlayerController(nanoid(), nanoid(), playerLocation),
+        new PlayerController(nanoid(), nanoid(), playerLocation),
+        new PlayerController(nanoid(), nanoid(), playerLocation),
+      ];
+      testArea.joinPlayer(testArea.occupants[0]);
+      testArea.joinPlayer(testArea.occupants[1]);
+      testArea.joinPlayer(testArea.occupants[2]);
+      testArea.joinPlayer(testArea.occupants[3]);
+      testArea.teamTwoWordsRemaining = 0;
+      testArea.checkGameOver();
+      testController.emitPlayerScoreChange(testArea);
+      expect(mockSocket.emit).toBeCalledWith('playerScoreUpdate', {
+        spymaster: testArea.occupants[1].toPlayerModel(),
+        operative: testArea.occupants[3].toPlayerModel(),
+      });
     });
     it('Emits conversationAreasChanged when a conversation area is created', () => {
       const newConvArea = townJoinResponse.interactables.find(
