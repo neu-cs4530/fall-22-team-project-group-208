@@ -294,10 +294,22 @@ describe('[T2] CodenamesAreaController', () => {
       testArea.joinPlayer(testArea.occupants[3]);
       testArea.teamOneWordsRemaining = 0;
       testArea.checkGameOver();
-      expect(testArea.occupants.find(occupant => occupant.id === testArea.roles.teamOneSpymaster)?.codenamesWins).toEqual(1);
-      expect(testArea.occupants.find(occupant => occupant.id === testArea.roles.teamOneOperative)?.codenamesWins).toEqual(1);
-      expect(testArea.occupants.find(occupant => occupant.id === testArea.roles.teamTwoSpymaster)?.codenamesWins).toEqual(0);
-      expect(testArea.occupants.find(occupant => occupant.id === testArea.roles.teamTwoOperative)?.codenamesWins).toEqual(0);
+      expect(
+        testArea.occupants.find(occupant => occupant.id === testArea.roles.teamOneSpymaster)
+          ?.codenamesWins,
+      ).toEqual(1);
+      expect(
+        testArea.occupants.find(occupant => occupant.id === testArea.roles.teamOneOperative)
+          ?.codenamesWins,
+      ).toEqual(1);
+      expect(
+        testArea.occupants.find(occupant => occupant.id === testArea.roles.teamTwoSpymaster)
+          ?.codenamesWins,
+      ).toEqual(0);
+      expect(
+        testArea.occupants.find(occupant => occupant.id === testArea.roles.teamTwoOperative)
+          ?.codenamesWins,
+      ).toEqual(0);
     });
     it('increments the number of wins for the players on a team if team two wins', () => {
       testArea.joinPlayer(testArea.occupants[0]);
@@ -306,10 +318,22 @@ describe('[T2] CodenamesAreaController', () => {
       testArea.joinPlayer(testArea.occupants[3]);
       testArea.teamTwoWordsRemaining = 0;
       testArea.checkGameOver();
-      expect(testArea.occupants.find(occupant => occupant.id === testArea.roles.teamOneSpymaster)?.codenamesWins).toEqual(0);
-      expect(testArea.occupants.find(occupant => occupant.id === testArea.roles.teamOneOperative)?.codenamesWins).toEqual(0);
-      expect(testArea.occupants.find(occupant => occupant.id === testArea.roles.teamTwoSpymaster)?.codenamesWins).toEqual(1);
-      expect(testArea.occupants.find(occupant => occupant.id === testArea.roles.teamTwoOperative)?.codenamesWins).toEqual(1);
+      expect(
+        testArea.occupants.find(occupant => occupant.id === testArea.roles.teamOneSpymaster)
+          ?.codenamesWins,
+      ).toEqual(0);
+      expect(
+        testArea.occupants.find(occupant => occupant.id === testArea.roles.teamOneOperative)
+          ?.codenamesWins,
+      ).toEqual(0);
+      expect(
+        testArea.occupants.find(occupant => occupant.id === testArea.roles.teamTwoSpymaster)
+          ?.codenamesWins,
+      ).toEqual(1);
+      expect(
+        testArea.occupants.find(occupant => occupant.id === testArea.roles.teamTwoOperative)
+          ?.codenamesWins,
+      ).toEqual(1);
     });
   });
 });
