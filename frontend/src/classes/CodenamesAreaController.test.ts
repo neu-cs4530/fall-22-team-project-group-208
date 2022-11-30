@@ -261,17 +261,9 @@ describe('[T2] CodenamesAreaController', () => {
         'It is not the proper turn to make a guess',
       );
     });
-    it("Does not allow for a guess when it is not one of the operative's turn", () => {
-      // TODO: Not sure how to properly test this or if this is a logic we implement in the controller
-      expect(true).toEqual(true);
-    });
-    it("Does not allow for a guess when it is either of the spymaster's turn", () => {
-      // TODO: Not sure how to properly test this or if this is a logic we implement in the controller
-      expect(true).toEqual(true);
-    });
   });
   describe('checkGameOver', () => {
-    it('updates the isGameOver field accordingly when a team wins', () => {
+    it('updates the isGameOver field accordingly when team one wins', () => {
       testArea.teamOneWordsRemaining = 0;
       testArea.checkGameOver();
       expect(testArea.isGameOver).toEqual({
